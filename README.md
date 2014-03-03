@@ -1,4 +1,4 @@
-#Posh-Nessus
+#Posh-NVS
 ##Description
 PowerShell v3 Module for intearcting with one or more Tenable Nessus Vulnerability Scanner Servers.
 

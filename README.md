@@ -38,13 +38,10 @@ Import-Module posh-nessus -Verbose -Force
 ```
 It should print all the functions as they are loaded. You can make changes to the code and reload the module using the same command.
 
-##ToDo
-* Add Method to user obects.
-* Add Method to scan objects.
-* Add Methods to scan template objects.
-* Add ability to modify user IsAdmin and Rename.
-* Add command to change user password.
-* Add command for pulling Port Sumarry for hosts in a report
-* Create XAML Help File.
-* Create Format Type.
-* Add function for creating scheduled scan template.
+## ChangeLog
+
+* Added Encryption type selection when configuring the mail server.
+* Scan folder manipulation (Listing, Creation, Rename and Delete).
+* Migrated to Get-NessusScan for scan listing and filtering.
+* Moving a specied scan to a folder.
+* Get MultiScanner Info

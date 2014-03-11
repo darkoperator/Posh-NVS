@@ -186,10 +186,7 @@ function Invoke-NessusScan
         [string]$Name
     )
 
-    BEGIN {
-
-    }
-
+    BEGIN {}
     PROCESS {
         
         if ($Index.Length -gt 0)
@@ -298,9 +295,7 @@ function Stop-NessusScan
         $ScanID
 
     )
-    BEGIN {
-        
-    }
+    BEGIN {}
     PROCESS {
         if ($Index.Length -gt 0)
         {
@@ -430,22 +425,26 @@ function Resume-NessusScan
                 $NSession = $Session
         }
 
-        try {
+        try 
+        {
             $request_reply = $NSession.SessionManager.ResumeScan(
                 $ScanID).reply
         }
-        Catch [Net.WebException] {
+        Catch [Net.WebException] 
+        {
            
             write-verbose "The session has expired, Re-authenticating"
-            $reauth = $ns.SessionManager.Login(
-                $ns.SessionState.Username, 
-                $ns.SessionState.Password, 
+            $reauth = $NSession.SessionManager.Login(
+                $NSession.SessionState.Username, 
+                $NSession.SessionState.Password, 
                 [ref]$true)
-            if ($reauth.reply.status -eq "OK"){
+            if ($reauth.reply.status -eq "OK")
+            {
                 $request_reply = $NSession.SessionManager.ResumeScan(
                     $ScanID).reply
             }
-            else{
+            else
+            {
                 throw "Session expired could not Re-Authenticate"
             }   
         }
@@ -549,9 +548,9 @@ function Suspend-NessusScan
         Catch [Net.WebException] {
            
             write-verbose "The session has expired, Re-authenticating"
-            $reauth = $ns.SessionManager.Login(
-                $ns.SessionState.Username, 
-                $ns.SessionState.Password, 
+            $reauth = $NSession.SessionManager.Login(
+                $NSession.SessionState.Username, 
+                $NSession.SessionState.Password, 
                 [ref]$true)
             if ($reauth.reply.status -eq "OK"){
                 $request_reply = $NSession.SessionManager.PauseScan(
@@ -668,9 +667,9 @@ function Show-NessusScanTemplate
         Catch [Net.WebException] {
            
             write-verbose "The session has expired, Re-authenticating"
-            $reauth = $ns.SessionManager.Login(
-                $ns.SessionState.Username, 
-                $ns.SessionState.Password, 
+            $reauth = $NSession.SessionManager.Login(
+                $NSession.SessionState.Username, 
+                $NSession.SessionState.Password, 
                 [ref]$true)
             if ($reauth.reply.status -eq "OK"){
                 $request_reply = $NSession.SessionManager.ListTemplates().reply
@@ -796,9 +795,9 @@ function Invoke-NessusScanTemplate
         {
            
             write-verbose "The session has expired, Re-authenticating"
-            $reauth = $ns.SessionManager.Login(
-                $ns.SessionState.Username, 
-                $ns.SessionState.Password, 
+            $reauth = $NSession.SessionManager.Login(
+                $NSession.SessionState.Username, 
+                $NSession.SessionState.Password, 
                 [ref]$true)
             if ($reauth.reply.status -eq "OK")
             {
@@ -920,9 +919,9 @@ function New-NessusScanTemplate
         Catch [Net.WebException] {
            
             write-verbose "The session has expired, Re-authenticating"
-            $reauth = $ns.SessionManager.Login(
-                $ns.SessionState.Username, 
-                $ns.SessionState.Password, 
+            $reauth = $NSession.SessionManager.Login(
+                $NSession.SessionState.Username, 
+                $NSession.SessionState.Password, 
                 [ref]$true)
             if ($reauth.reply.status -eq "OK"){
                 $request_reply = $NSession.SessionManager.CreateScanTemplate($TemplateName, $PolicyID, $Target).reply

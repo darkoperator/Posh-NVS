@@ -1076,6 +1076,13 @@ function Set-NessusServerSMTPSettingss
         [ValidateSet('PLAIN', 'CRAM-MD5', 'LOGIN', 'NTLM', 'NONE')]
         [string]$AuthMethod,
 
+        [Parameter(Mandatory=$true,
+        ParameterSetName = "Session",
+        ValueFromPipeline=$True)]
+        [Parameter(ParameterSetName = "Index")]
+        [ValidateSet('TLSOptional', 'TLS', 'SSL', 'NoEncryption')]
+        [string]$Encryption,
+
         [Parameter(Mandatory=$false,
         ParameterSetName = "Session",
         ValueFromPipeline=$True)]
@@ -1097,6 +1104,16 @@ function Set-NessusServerSMTPSettingss
             seq = $rand.Next()
             json = 1
         }
+
+        switch ($Encryption)
+        {
+            "SSL" {$EncryptionType = 'Force SSL'}
+            "TLS" {$EncryptionType = 'Force TLS'}
+            "NoEncryption" {$EncryptionType = 'Force TLS'}
+            "TLSOptional" {$EncryptionType = 'Use TLS if available'}
+        }
+
+        $ops.Add('SMTP+Server.7', $EncryptionType)
 
         if ($SMTPServer)
         {
@@ -1126,7 +1143,7 @@ function Set-NessusServerSMTPSettingss
 
         if ($NessusServer)
         {
-            $ops.Add('SMTP+Server.6', $NessusServer)
+            $ops.Add('SMTP+Server.7', $NessusServer)
         }
 
      }

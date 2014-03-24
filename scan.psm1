@@ -3,129 +3,6 @@
 ################################
 
 
-<#
-.Synopsis
-   Shows Current Nessus Vulnerability Scans
-.DESCRIPTION
-   Shows current Nessus Vulnerability Scans that are running on a Nessus Server.
-.EXAMPLE
-    Shows running vulnerability scans on a Nessus Server
-
-    PS C:\> Show-NessusScans -Index 0
-
-
-    ScanID   : 908185a5-19cc-e2e4-6073-2134043611b99e3d5fcf060ec31e
-    ScanName : Scan Dev Lab
-    Owner    : carlos
-    Status   : running
-    Date     : 4/11/2013 4:19:01 AM
-#>
-
-function Show-NessusScans
-{
-    [CmdletBinding(DefaultParameterSetName = 'Index')]
-    param(
-        [Parameter(Mandatory=$true,
-        Position=0,
-        ParameterSetName = "Index")]
-        [int32[]]$Index,
-
-        [Parameter(Mandatory=$true,
-        Position=0,
-        ParameterSetName = "Session",
-        ValueFromPipeline=$True)]
-        [Nessus.Server.Session]$Session,
-
-        [Parameter(Mandatory=$false,
-        Position=1,
-        ParameterSetName = "Session")]
-        [Parameter(ParameterSetName = "Index")]
-        $ScanName
-
-    )
-    Begin {
-        
-    }
-    Process {
-
-        if ($Index.Length -gt 0)
-        {
-            foreach($conn in $Global:nessusconn)
-            {
-                if ($conn.index -in $Index)
-                {
-                    $NSession = $conn
-                }
-            }
-        }
-        elseif ($Session -ne $null)
-        {
-                $NSession = $Session
-        }
-
-        try {
-            $request_reply = $NSession.SessionManager.ListScans().reply
-        }
-        Catch [Net.WebException] {
-           
-            write-verbose "The session has expired, Re-authenticating"
-            $reauth = $ns.SessionManager.Login(
-                $ns.SessionState.Username, 
-                $ns.SessionState.Password, 
-                [ref]$true)
-            if ($reauth.reply.status -eq "OK"){
-                $request_reply = $NSession.SessionManager.ListScans().reply
-            }
-            else{
-                throw "Session expired could not Re-Authenticate"
-            }   
-        }
-        
-        # Check that we got the proper response
-        if ($request_reply.status -eq "OK"){
-            # Returns epoch time so we need to tranform it
-            $origin = New-Object -Type DateTime -ArgumentList 1970, 1, 1, 0, 0, 0, 0
-            Write-Verbose -Message "We got an OK reply from the session."
-
-            if ($request_reply.contents.scans.scanlist.scan -ne $null) {
-                # Return all scans if none is specified by name
-                if ($ScanName -eq $null){
-                    foreach ($scan in $request_reply.contents.scans.scanlist.scan){
-                        $scan_proprties = [ordered]@{
-                            ScanID   = $scan.uuid
-                            ScanName = $scan.readableName
-                            Owner    = $scan.owner
-                            Status   = $scan.status
-                            Date     = $origin.AddSeconds($scan.start_time).ToLocalTime()
-                        }
-                        $scanpropobj = [PSCustomObject]$scan_proprties
-                        $scanpropobj.pstypenames.insert(0,'Nessus.Server.Scan')
-                        $scanpropobj
-                    }
-                }
-                else{
-                    foreach ($scan in $request_reply.contents.scans.scanlist.scan) {
-                        if ($scan.readableName -eq $ScanName){
-                                $scan_proprties = [ordered]@{
-                                ScanID   = $scan.uuid
-                                ScanName = $scan.readableName
-                                Owner    = $scan.owner
-                                Status   = $scan.status
-                                Date     = $origin.AddSeconds($scan.start_time).ToLocalTime()
-                            }
-                            $scanpropobj = [PSCustomObject]$scan_proprties
-                            $scanpropobj.pstypenames.insert(0,'Nessus.Server.Scan')
-                            $scanpropobj
-                        }
-                    }
-                }
-            }
-            else {
-                Write-Warning "No scans are running at this moment."
-            }
-        }
-    }
-}
 
 
 <#
@@ -561,15 +438,18 @@ function Suspend-NessusScan
             }   
         }
 
-        if ($request_reply.status -eq "OK" -and $request_reply.contents){
+        if ($request_reply.status -eq "OK" -and $request_reply.contents)
+        {
             # Returns epoch time so we need to tranform it
             $origin = New-Object -Type DateTime -ArgumentList 1970, 1, 1, 0, 0, 0, 0
             Write-Verbose -Message "We got an OK reply from the session."
             # Get the UUID of the report to look for it in the Scan list
             $created_uuid = $request_reply.contents.scan.uuid
             # Search for the recently created report
-            foreach ($scan in $NSession.SessionManager.ListScans().reply.contents.scans.scanlist.scan) {
-                if ($scan.uuid -eq $created_uuid){
+            foreach ($scan in $NSession.SessionManager.ListScans().reply.contents.scans.scanlist.scan) 
+            {
+                if ($scan.uuid -eq $created_uuid)
+                {
                         $scan_proprties = [ordered]@{
                         ScanID   = $scan.uuid
                         ScanName = $scan.readableName
@@ -583,10 +463,12 @@ function Suspend-NessusScan
                 }
             }
         }
-        elseif(($request_reply.status -eq "OK") -and (!($request_reply.contents))) {
+        elseif(($request_reply.status -eq "OK") -and (!($request_reply.contents))) 
+        {
             throw "ScanID not found"
         }
-        else {
+        else 
+        {
             throw $request_reply.contents
         }
     }
@@ -1262,13 +1144,22 @@ function Update-NessusScanTemplate
 
 <#
 .Synopsis
-   Short description
+   Get Nessus scans on a given Nessus Server.
 .DESCRIPTION
-   Long description
+   Get Nessus scans on a given Nessus Server. They can be filtered by Running, Paused,
+   Canceled, Any, Imported and Completed.
 .EXAMPLE
-   Example of how to use this cmdlet
-.EXAMPLE
-   Another example of how to use this cmdlet
+   Get-NessusScan -Index 0 -Status Canceled
+
+
+tags      : {1}
+remote    : 0
+name      : vmware test
+id        : 272d6b4c-2cbb-8993-6e43-5976627287deda5fb60c59c93f9d
+read      : 1
+status    : canceled
+owner     : carlos
+timestamp : 1392062088
 #>
 function Get-NessusScan
 {
@@ -1377,6 +1268,7 @@ function Get-NessusScan
     {
     }
 }
+
 
 
 function Get-NessusScanDetail

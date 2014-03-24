@@ -1123,199 +1123,6 @@ function Copy-NessusPolicy
 }
 
 
-<#
-.Synopsis
-   Sets on a given policy the Windows Credential to Try
-.DESCRIPTION
-   Sets on a given policy the Windows credentials to try for those plugins
-   that use Windows credentials to perform authenticated checks. Up to 4
-   credential combination can be set. The NTLMv2 and Password type will apply
-   to all credentials. Text password, LM Hash or NTML Hash can be used to 
-   authenticate with Windows hosts.
-.EXAMPLE
-   Example of how to use this cmdlet
-.EXAMPLE
-   Another example of how to use this cmdlet
-#>
-function Set-NessusPolicyWindowsCredential
-{
-    [CmdletBinding(DefaultParameterSetName = 'Index')]
-    param(
-        [Parameter(Mandatory=$true,
-        Position=0,
-        ParameterSetName = "Index")]
-        [int32[]]$Index,
-
-        [Parameter(Mandatory=$true,
-        Position=0,
-        ParameterSetName = "Session",
-        ValueFromPipeline=$True)]
-        [Nessus.Server.Session]$Session,
-
-        # Numeric ID of the Policy to update.
-        [Parameter(Mandatory=$false,
-        Position=1,
-        ParameterSetName = "Session")]
-        [Parameter(ParameterSetName = "Index")]
-        [int]$PolicyID,
-
-        # A index value from 0 to 3 for the credentials. Nessus can have up to 4 credentials to try.
-        [Parameter(Mandatory=$true,
-        Position=2)]
-        [ValidateRange(0,3)] 
-        $UserIndex,
-
-        # Credential object with credentials that will be set.
-        [Parameter(Mandatory=$true,
-        Position=3)]
-        [Management.Automation.PSCredential]$Credential,
-
-        # Sets if NTLMv2 will be used to transmit the credentials.
-        [Parameter(Mandatory=$false,
-        Position=4)]
-        [switch]$NTLMv2 = $true,
-
-        # Sets if Kerberos will be used for authentication.
-        [Parameter(Mandatory=$false,
-        Position=4)]
-        [switch]$KerberosOnly = $true,
-
-
-        # Type of password format, text password, LM Hash or NTML Hash.
-        [Parameter(Mandatory=$false,
-        Position=6)]
-        [ValidateSet("Password","NTLMHash","LMHash")]
-        [String]$PasswordType = "Password"
-
-    )
-
-    Begin
-    {
-        # Random number for sequence request
-        $rand = New-Object System.Random
-
-        # Options for XMLRPC request
-        $opt = @{ 
-            seq  = $rand.Next()
-            policy_id = $PolicyID
-        }
-        switch ($UserIndex)
-        {
-            0 {
-                $opt.add("credentials.Windows+credentials.364", $Credential.GetNetworkCredential().UserName)
-                $opt.add("credentials.Windows+credentials.365", $Credential.GetNetworkCredential().Password)
-                $opt.add("credentials.Windows+credentials.366", $Credential.GetNetworkCredential().Domain)
-              }
-
-            1 {
-                $opt.add("credentials.Windows+credentials.368", $Credential.GetNetworkCredential().UserName)
-                $opt.add("credentials.Windows+credentials.369", $Credential.GetNetworkCredential().Password)
-                $opt.add("credentials.Windows+credentials.370", $Credential.GetNetworkCredential().Domain)
-            }
-
-            2 {
-                $opt.add("credentials.Windows+credentials.371", $Credential.GetNetworkCredential().UserName)
-                $opt.add("credentials.Windows+credentials.372", $Credential.GetNetworkCredential().Password)
-                $opt.add("credentials.Windows+credentials.373", $Credential.GetNetworkCredential().Domain)
-            }
-
-            3 {
-                $opt.add("credentials.Windows+credentials.374", $Credential.GetNetworkCredential().UserName)
-                $opt.add("credentials.Windows+credentials.375", $Credential.GetNetworkCredential().Password)
-                $opt.add("credentials.Windows+credentials.376", $Credential.GetNetworkCredential().Domain)
-            }
-        }
-
-        switch ($PasswordType)
-        {
-            "Password" {$opt.add("credentials.Windows+credentials.367",'Password')}
-            "NTLMHash" {$opt.add("credentials.Windows+credentials.367",'NTLM+Hash')}
-            "LMHash"   {$opt.add("credentials.Windows+credentials.367",'LM+Hash')}
-        }
-
-        if ($NTLMv2)
-        {
-            $opt.add("credentials.Windows+credentials.378",'yes')
-        }
-        else
-        {
-            $opt.add("credentials.Windows+credentials.378",'no')
-        }
-
-        if ($KerberosOnly)
-        {
-            $opt.add("credentials.Windows+credentials.379",'yes')
-        }
-        else
-        {
-            $opt.add("credentials.Windows+credentials.379",'no')
-        }
-
-        # Make sure the credentials are never sent in as cleartext
-        $opt.add("credentials.Windows+credentials.377",'yes')
-    }
-    Process
-    {
-        if ($Index.Length -gt 0)
-        {
-            foreach($conn in $Global:nessusconn)
-            {
-                if ($conn.index -in $Index)
-                {
-                    $NSession = $conn
-                }
-            }
-        }
-        elseif ($Session -ne $null)
-        {
-                $NSession = $Session
-        }
-
-        try 
-        {
-            Write-Verbose "Setting credentia on policy $($PolicyID)"
-            $request_reply = $NSession.SessionState.ExecuteCommand("/policy/update", $opt)
-            
-        }
-        Catch [Net.WebException] 
-        {
-           if ($_.exception -match ".*403.*") 
-           {
-                write-verbose "The session has expired, Re-authenticating"
-                $reauth = $ns.SessionManager.Login(
-                    $ns.SessionState.Username, 
-                    $ns.SessionState.Password, 
-                    [ref]$true)
-                if ($reauth.reply.status -eq "OK")
-                {
-                    $request_reply = $NSession.SessionState.ExecuteCommand("/policy/update", $opt)
-                }
-                else
-                {
-                    throw "Session expired could not Re-Authenticate"
-                }
-            }
-            elseif ($_.exception -match ".*404.*") 
-            {
-                throw "A policy with that ID was not found on Nessus Server"
-            } 
-        }
-        
-        if ($request_reply.reply.status -eq "OK")
-        {
-            Write-Verbose "We got OK on request." 
-            $true
-        }
-        else
-        {
-            $false
-        }
-    }
-    End
-    {
-    }
-}
-
 
 
 function Set-NessusPolicySSHCredential
@@ -1794,6 +1601,405 @@ function Disable-NessusPolicyPlugin
                     Write-Warning "Plugin $($plugin) was not found and could not be enabled."
                 }
             }
+        }
+    }
+    End
+    {
+    }
+}
+
+
+<#
+.Synopsis
+   Sets on a given policy the Windows Credential to Try
+.DESCRIPTION
+   Sets on a given policy the Windows credentials to try for those plugins
+   that use Windows credentials to perform authenticated checks. Up to 4
+   credential combination can be set. The NTLMv2 and Password type will apply
+   to all credentials. Text password, LM Hash or NTML Hash can be used to 
+   authenticate with Windows hosts.
+.EXAMPLE
+   Set-NessusPolicyWindowsCredential -Index 0 -PolicyID 6 -UserIndex 0 -Credential (Get-Credential tenablelab\nessuscan)
+
+#>
+function Set-NessusPolicyWindowsCredential
+{
+    [CmdletBinding()]
+    [OutputType([int])]
+    param(
+        [Parameter(Mandatory=$true,
+                   Position=0,
+                   ValueFromPipeline=$True,
+                   ParameterSetName = "Index")]
+        [int32]
+        $Index,
+
+        [Parameter(Mandatory=$true,
+                   ParameterSetName = "Session",
+                   Position=0,
+                   ValueFromPipeline=$True)]
+        [Nessus.Server.Session]
+        $Session,
+
+        [Parameter(Mandatory=$true,
+                   Position=1,
+                   ParameterSetName = "Session")]
+        [Parameter(Mandatory=$true,
+                   Position=2,
+                   ParameterSetName = "Index")]
+        [int]$PolicyID,
+
+        # A index value from 0 to 3 for the credentials. Nessus can have up to 4 credentials to try.
+        [Parameter(Mandatory=$true,
+                   Position=2)]
+        [ValidateRange(0,3)] 
+        $UserIndex,
+
+        # Credential object with credentials that will be set.
+        [Parameter(Mandatory=$true,
+                   Position=3)]
+        [Management.Automation.PSCredential]$Credential,
+
+        # Sets if NTLMv2 will be used to transmit the credentials.
+        [Parameter(Mandatory=$false,
+                   Position=4)]
+        [switch]$NTLMv2 = $true,
+
+        # Sets if Kerberos will be used for authentication.
+        [Parameter(Mandatory=$false,
+                   Position=4)]
+        [switch]$KerberosOnly,
+
+
+        # Type of password format, text password, LM Hash or NTML Hash.
+        [Parameter(Mandatory=$false,
+                   Position=6)]
+        [ValidateSet("Password","NTLMHash","LMHash")]
+        [String]$PasswordType = "Password"
+    )
+    Begin
+    {
+        # Random number for sequence request
+        $rand = New-Object System.Random
+        
+        # Options for XMLRPC request
+        $opt = @{
+            seq = $rand.Next()
+            json = 1
+            policy_id = $PolicyID
+        }
+
+        # Variable to refence credential IDs
+        $CredRef = @{}
+    }
+    Process
+    {
+        switch ($PSCmdlet.ParameterSetName)
+        {
+            'Index' 
+            {
+                foreach($conn in $Global:nessusconn)
+                {
+                    if ($conn.index -eq $Index)
+                    {
+                        $NSession = $conn
+                    }
+                }
+            }
+
+            'Session'
+            {
+                $NSession = $Session
+            }
+        }
+
+        try
+        {
+            $Reply = $NSession.SessionState.ExecuteCommand2("/policy/list/credentials", $opt)
+        }
+        catch [System.Management.Automation.MethodInvocationException]
+        {
+            write-verbose "The session has expired, Re-authenticating"
+            $reauth = $NSession.SessionManager.Login(
+                $NSession.SessionState.Username, 
+                $NSession.SessionState.Password, 
+                [ref]$true)
+            if ($reauth.reply.status -eq "OK")
+            {
+                $Reply = $NSession.SessionState.ExecuteCommand2("/policy/list/credentials",$opt)
+            }
+            else
+            {
+                throw "Session expired could not Re-Authenticate"
+            }
+        }
+
+        if ($Reply)
+        {
+            $Creds = ($Reply | ConvertFrom-Json).reply.contents.credentials.credential
+            $WinCreds = $creds | Where-Object { $_.name -eq "Windows credentials" }
+
+            foreach ($Cred in $WinCreds.values)
+            {
+                switch ($Cred.name)
+                {
+                    'SMB account :' { $CredRef.Add('User0', $Cred.id) }
+                    'SMB password :' { $CredRef.Add('Password0', $Cred.id) }
+                    'SMB domain (optional) :' { $CredRef.Add('PassType', $Cred.id) }
+                    'SMB password type :' {  $CredRef.Add('Domain0', $Cred.id) }
+                    'Additional SMB account (1) :' {$CredRef.Add('User1', $Cred.id)}
+                    'Additional SMB password (1) :' { $CredRef.Add('Password1', $Cred.id) }
+                    'Additional SMB domain (optional) (1) :' { $CredRef.Add('Domain1', $Cred.id) }
+                    'Additional SMB account (2) :' { $CredRef.Add('User2', $Cred.id) }
+                    'Additional SMB password (2) :' { $CredRef.Add('Password2', $Cred.id) }
+                    'Additional SMB domain (optional) (2) :' { $CredRef.Add('Domain2', $Cred.id) }
+                    'Additional SMB account (3) :' { $CredRef.Add('User3', $Cred.id) }
+                    'Additional SMB password (3) :' { $CredRef.Add('Password3', $Cred.id) }
+                    'Additional SMB domain (optional) (3) :' { $CredRef.Add('Domain3', $Cred.id) }
+                    'Never send SMB credentials in clear text' { $CredRef.Add('ClearText', $Cred.id)}
+                    'Only use NTLMv2' { $CredRef.Add('NTLMv2',$Cred.id) }
+                    'Only use Kerberos authentication for SMB' { $CredRef.Add('Kerberos',$Cred.id) }
+                    Default {}
+                }
+            }
+
+            switch ($UserIndex)
+            {
+                0 {
+                    $opt.add(
+                        "credentials.Windows+credentials.$($CredRef['User0'])", 
+                        $Credential.GetNetworkCredential().UserName)
+
+                    $opt.add(
+                        "credentials.Windows+credentials.$($CredRef['Password0'])",
+                        $Credential.GetNetworkCredential().Password)
+
+                    $opt.add("credentials.Windows+credentials.$(
+                        $CredRef['Domain0'])", 
+                        $Credential.GetNetworkCredential().Domain)
+                  }
+
+                1 {
+                    $opt.add(
+                        "credentials.Windows+credentials.$($CredRef['User1'])", 
+                        $Credential.GetNetworkCredential().UserName)
+
+                    $opt.add(
+                        "credentials.Windows+credentials.$($CredRef['Password1'])", 
+                        $Credential.GetNetworkCredential().Password)
+
+                    $opt.add(
+                        "credentials.Windows+credentials.$($CredRef['Domain1'])", 
+                        $Credential.GetNetworkCredential().Domain)
+                }
+
+                2 {
+                    $opt.add("credentials.Windows+credentials.$(
+                        $CredRef['User2'])",
+                        $Credential.GetNetworkCredential().UserName)
+                    
+                    $opt.add(
+                        "credentials.Windows+credentials.$($CredRef['Password2'])", 
+                        $Credential.GetNetworkCredential().Password)
+                    
+                    $opt.add(
+                        "credentials.Windows+credentials.$($CredRef['Domain2'])", 
+                        $Credential.GetNetworkCredential().Domain)
+                }
+
+                3 {
+                    $opt.add(
+                        "credentials.Windows+credentials.$($CredRef['User3'])", 
+                        $Credential.GetNetworkCredential().UserName)
+                    
+                    $opt.add(
+                        "credentials.Windows+credentials.$($CredRef['Password3'])", 
+                        $Credential.GetNetworkCredential().Password)
+                    
+                    $opt.add(
+                        "credentials.Windows+credentials.$($CredRef['Domain3'])", 
+                        $Credential.GetNetworkCredential().Domain)
+                }
+            }
+
+            switch ($PasswordType)
+            {
+                "Password" {$opt.add("credentials.Windows+credentials.$($CredRef['PassType'])",'Password')}
+                "NTLMHash" {$opt.add("credentials.Windows+credentials.$($CredRef['PassType'])",'NTLM+Hash')}
+                "LMHash"   {$opt.add("credentials.Windows+credentials.$($CredRef['PassType'])",'LM+Hash')}
+            }
+
+            if ($NTLMv2)
+            {
+                $opt.add("credentials.Windows+credentials.$($CredRef['NTLMv2'])",'yes')
+            }
+            else
+            {
+                $opt.add("credentials.Windows+credentials.$($CredRef['NTMLv2'])",'no')
+            }
+
+            if ($KerberosOnly)
+            {
+                $opt.add("credentials.Windows+credentials.$($CredRef['Kerberos'])",'yes')
+            }
+            else
+            {
+                $opt.add("credentials.Windows+credentials.$($CredRef['Kerberos'])",'no')
+            }
+
+            # Make sure the credentials are never sent in as cleartext
+            $opt.add("credentials.Windows+credentials.$($CredRef['ClearText'])",'yes')
+            
+            $SetResult = $NSession.SessionState.ExecuteCommand2("/policy/update",$opt)
+        }
+    }
+    End
+    {
+    }
+}
+
+
+<#
+.Synopsis
+   Get the Windows Credential settings for a Policy.
+.DESCRIPTION
+   Get the Windows Credential settings for a Policy given its Id.
+.EXAMPLE
+   Get-NessusPolicyWindowsCredential -Index 0 -PolicyID 6
+
+
+User0          : nessuscan
+Password0      : *********
+PasswordType   : Password
+Domain0        : tenablelab
+User1          : user2
+Password1      : *********
+Domain1        : domain2
+User2          : 
+Password2      : 
+Domain2        : 
+User3          : 
+Password3      : 
+Domain3        : 
+AllowClearText : yes
+NTLMv2         : no
+KerberosOnly   : no
+
+#>
+function Get-NessusPolicyWindowsCredential
+{
+    [CmdletBinding()]
+    [OutputType([int])]
+    param(
+        [Parameter(Mandatory=$true,
+                   Position=0,
+                   ValueFromPipeline=$True,
+                   ParameterSetName = "Index")]
+        [int32]
+        $Index,
+
+        [Parameter(Mandatory=$true,
+                   ParameterSetName = "Session",
+                   Position=0,
+                   ValueFromPipeline=$True)]
+        [Nessus.Server.Session]
+        $Session,
+
+        [Parameter(Mandatory=$true,
+                   Position=1,
+                   ParameterSetName = "Session")]
+        [Parameter(Mandatory=$true,
+                   Position=2,
+                   ParameterSetName = "Index")]
+        [int]$PolicyID
+    )
+    Begin
+    {
+        # Random number for sequence request
+        $rand = New-Object System.Random
+        
+        # Options for XMLRPC request
+        $opt = @{
+            seq = $rand.Next()
+            json = 1
+            policy_id = $PolicyID
+        }
+
+        # Variable to refence credential IDs
+        $CredRef = [ordered]@{}
+    }
+    Process
+    {
+        switch ($PSCmdlet.ParameterSetName)
+        {
+            'Index' 
+            {
+                foreach($conn in $Global:nessusconn)
+                {
+                    if ($conn.index -eq $Index)
+                    {
+                        $NSession = $conn
+                    }
+                }
+            }
+
+            'Session'
+            {
+                $NSession = $Session
+            }
+        }
+
+        try
+        {
+            $Reply = $NSession.SessionState.ExecuteCommand2("/policy/list/credentials", $opt)
+        }
+        catch [System.Management.Automation.MethodInvocationException]
+        {
+            write-verbose "The session has expired, Re-authenticating"
+            $reauth = $NSession.SessionManager.Login(
+                $NSession.SessionState.Username, 
+                $NSession.SessionState.Password, 
+                [ref]$true)
+            if ($reauth.reply.status -eq "OK")
+            {
+                $Reply = $NSession.SessionState.ExecuteCommand2("/policy/list/credentials",$opt)
+            }
+            else
+            {
+                throw "Session expired could not Re-Authenticate"
+            }
+        }
+
+        if ($Reply)
+        {
+            $Creds = ($Reply | ConvertFrom-Json).reply.contents.credentials.credential
+            $WinCreds = $creds | Where-Object { $_.name -eq "Windows credentials" }
+
+            foreach ($Cred in $WinCreds.values)
+            {
+                switch ($Cred.name)
+                {
+                    'SMB account :' { $CredRef.Add('User0', $Cred.svalue) }
+                    'SMB password :' { $CredRef.Add('Password0', $Cred.svalue) }
+                    'SMB password type :' {  $CredRef.Add('Domain0', $Cred.svalue) }
+                    'Additional SMB account (1) :' {$CredRef.Add('User1', $Cred.svalue)}
+                    'Additional SMB password (1) :' { $CredRef.Add('Password1', $Cred.svalue) }
+                    'Additional SMB domain (optional) (1) :' { $CredRef.Add('Domain1', $Cred.svalue) }
+                    'Additional SMB account (2) :' { $CredRef.Add('User2', $Cred.svalue) }
+                    'Additional SMB password (2) :' { $CredRef.Add('Password2', $Cred.svalue) }
+                    'Additional SMB domain (optional) (2) :' { $CredRef.Add('Domain2', $Cred.svalue) }
+                    'Additional SMB account (3) :' { $CredRef.Add('User3', $Cred.svalue) }
+                    'Additional SMB password (3) :' { $CredRef.Add('Password3', $Cred.svalue) }
+                    'Additional SMB domain (optional) (3) :' { $CredRef.Add('Domain3', $Cred.svalue) }
+                    'SMB domain (optional) :' { $CredRef.Add('PasswordType', $Cred.svalue) }
+                    'Never send SMB credentials in clear text' { $CredRef.Add('AllowClearText', $Cred.pvalues)}
+                    'Only use NTLMv2' { $CredRef.Add('NTLMv2',$Cred.pvalues) }
+                    'Only use Kerberos authentication for SMB' { $CredRef.Add('KerberosOnly',$Cred.pvalues) }
+                    Default {}
+                }
+            }
+
+            [pscustomobject]$CredRef
         }
     }
     End

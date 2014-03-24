@@ -1260,6 +1260,881 @@ function Update-NessusScanTemplate
     }
 }
 
+<#
+.Synopsis
+   Short description
+.DESCRIPTION
+   Long description
+.EXAMPLE
+   Example of how to use this cmdlet
+.EXAMPLE
+   Another example of how to use this cmdlet
+#>
+function Get-NessusScan
+{
+    [CmdletBinding(DefaultParameterSetName = 'Index')]
+    param(
+        [Parameter(Mandatory=$true,
+                   Position=0,
+                   ValueFromPipeline=$True,
+                   ParameterSetName = "Index")]
+        [int32]
+        $Index,
+
+        [Parameter(Mandatory=$true,
+                   ParameterSetName = "Session",
+                   Position=0,
+                   ValueFromPipeline=$True)]
+        [Nessus.Server.Session]
+        $Session,
+
+        [Parameter(Mandatory=$false,
+                   Position=1,
+                   ValueFromPipeline=$True)]
+        [ValidateSet('Running', 'Paused', 'Canceled', 'Any', 'Imported', 
+                     'Completed')]
+        [string]
+        $Status = 'Any'
+    )
+
+    Begin
+    {
+        # Random number for sequence request
+        $rand = New-Object System.Random
+        
+        # Options for XMLRPC request
+        $Options = @{
+            seq = $rand.Next()
+            json = 1
+        }
+
+        # Returns epoch time so we need to tranform it
+        $origin = New-Object -Type DateTime -ArgumentList 1970, 1, 1, 0, 0, 0, 0
+    }
+    Process
+    {
+        switch ($PSCmdlet.ParameterSetName)
+        {
+            'Index' 
+            {
+                foreach($conn in $Global:nessusconn)
+                {
+                    if ($conn.index -eq $Index)
+                    {
+                        $NSession = $conn
+                    }
+                }
+            }
+
+            'Session'
+            {
+                $NSession = $Session
+            }
+        }
+
+        try
+        {
+            $Reply = $NSession.SessionState.ExecuteCommand2("/result/list", $Options)
+        }
+        catch [System.Management.Automation.MethodInvocationException]
+        {
+            write-verbose "The session has expired, Re-authenticating"
+            $reauth = $NSession.SessionManager.Login(
+                $NSession.SessionState.Username, 
+                $NSession.SessionState.Password, 
+                [ref]$true)
+            if ($reauth.reply.status -eq "OK")
+            {
+                $Reply = $NSession.SessionState.ExecuteCommand2("/result/list",$Options)
+            }
+            else
+            {
+                throw "Session expired could not Re-Authenticate"
+            }
+        }
+
+        if ($Reply)
+        {
+            $Scans = $Reply | ConvertFrom-Json
+            foreach ($scan in $Scans.reply.contents.result)
+            {
+                if ($Status -eq 'Any')
+                {
+                    $ScanDate = $origin.AddSeconds($scan.timestamp).ToLocalTime()
+                    $scan.pstypenames.insert(0,'Nessus.Scan')
+                    $scan.timestamp = $ScanDate
+                    $scan
+                }
+                elseif ($scan.status -eq $Status)
+                {
+                    $scan.pstypenames.insert(0,'Nessus.Scan')
+                    $scan
+                }                                    
+            }
+        }
+    }
+    End
+    {
+    }
+}
+
+
+function Get-NessusScanDetail
+{
+    [CmdletBinding(DefaultParameterSetName = 'Index')]
+    param(
+        [Parameter(Mandatory=$true,
+                   Position=0,
+                   ValueFromPipeline=$True,
+                   ParameterSetName = "Index")]
+        [int32]
+        $Index,
+
+        [Parameter(Mandatory=$true,
+                   ParameterSetName = "Session",
+                   Position=0,
+                   ValueFromPipeline=$True)]
+        [Nessus.Server.Session]
+        $Session,
+
+        [Parameter(Mandatory=$true,
+                   Position=1,
+                   ValueFromPipeline=$True)]
+        [string]
+        $ScanID
+    )
+
+    Begin
+    {
+        # Random number for sequence request
+        $rand = New-Object System.Random
+        
+        # Options for XMLRPC request
+        $Options = @{
+            id  = $ScanID
+            seq = $rand.Next()
+            json = 1
+        }
+
+        # Returns epoch time so we need to tranform it
+        $origin = New-Object -Type DateTime -ArgumentList 1970, 1, 1, 0, 0, 0, 0
+    }
+    Process
+    {
+        switch ($PSCmdlet.ParameterSetName)
+        {
+            'Index' 
+            {
+                foreach($conn in $Global:nessusconn)
+                {
+                    if ($conn.index -eq $Index)
+                    {
+                        $NSession = $conn
+                    }
+                }
+            }
+
+            'Session'
+            {
+                $NSession = $Session
+            }
+        }
+
+        try
+        {
+            $Reply = $NSession.SessionState.ExecuteCommand2("/result/details", $Options)
+        }
+        catch [System.Management.Automation.MethodInvocationException]
+        {
+            write-verbose "The session has expired, Re-authenticating"
+            $reauth = $NSession.SessionManager.Login(
+                $NSession.SessionState.Username, 
+                $NSession.SessionState.Password, 
+                [ref]$true)
+            if ($reauth.reply.status -eq "OK")
+            {
+                $Reply = $NSession.SessionState.ExecuteCommand2("/result/details",$Options)
+            }
+            else
+            {
+                throw "Session expired could not Re-Authenticate"
+            }
+        }
+
+        if ($Reply)
+        {
+            $Scans = $Reply | ConvertFrom-Json
+            $Scans.reply.contents
+        }
+    }
+    End
+    {
+    }
+}
+
+
+function Get-NessusScanFolder
+{
+    [CmdletBinding(DefaultParameterSetName = 'Index')]
+    param(
+        [Parameter(Mandatory=$true,
+                   Position=0,
+                   ValueFromPipeline=$True,
+                   ParameterSetName = "Index")]
+        [int32]
+        $Index,
+
+        [Parameter(Mandatory=$true,
+                   ParameterSetName = "Session",
+                   Position=0,
+                   ValueFromPipeline=$True)]
+        [Nessus.Server.Session]
+        $Session
+    )
+
+    Begin
+    {
+        # Random number for sequence request
+        $rand = New-Object System.Random
+        
+        # Options for XMLRPC request
+        $Options = @{
+            seq = $rand.Next()
+            json = 1
+        }
+
+    }
+    Process
+    {
+        switch ($PSCmdlet.ParameterSetName)
+        {
+            'Index' 
+            {
+                foreach($conn in $Global:nessusconn)
+                {
+                    if ($conn.index -eq $Index)
+                    {
+                        $NSession = $conn
+                    }
+                }
+            }
+
+            'Session'
+            {
+                $NSession = $Session
+            }
+        }
+
+        try
+        {
+            $Reply = $NSession.SessionState.ExecuteCommand2("/tag/list", $Options)
+        }
+        catch [System.Management.Automation.MethodInvocationException]
+        {
+            write-verbose "The session has expired, Re-authenticating"
+            $reauth = $NSession.SessionManager.Login(
+                $NSession.SessionState.Username, 
+                $NSession.SessionState.Password, 
+                [ref]$true)
+            if ($reauth.reply.status -eq "OK")
+            {
+                $Reply = $NSession.SessionState.ExecuteCommand2("/tag/list",$Options)
+            }
+            else
+            {
+                throw "Session expired could not Re-Authenticate"
+            }
+        }
+
+        if ($Reply)
+        {
+            $Tags = $Reply | ConvertFrom-Json
+            foreach ($tag in $Tags.reply.contents.tags)
+            {
+                $tag.pstypenames.insert(0,'Nessus.Folder')
+                $tag                                   
+            }
+        }
+    }
+    End
+    {
+    }
+}
+
+
+function New-NessusScanFolder
+{
+    [CmdletBinding(DefaultParameterSetName = 'Index')]
+    param(
+        [Parameter(Mandatory=$true,
+                   Position=0,
+                   ValueFromPipeline=$True,
+                   ParameterSetName = "Index")]
+        [int32]
+        $Index,
+
+        [Parameter(Mandatory=$true,
+                   ParameterSetName = "Session",
+                   Position=0,
+                   ValueFromPipeline=$True)]
+        [Nessus.Server.Session]
+        $Session,
+
+        [Parameter(Mandatory=$true,
+                   Position=1,
+                   ValueFromPipeline=$True)]
+        [string]
+        $Name
+    )
+
+    Begin
+    {
+        # Random number for sequence request
+        $rand = New-Object System.Random
+        
+        # Options for XMLRPC request
+        $Options = @{
+            name = $Name
+            seq = $rand.Next()
+            json = 1
+        }
+
+    }
+    Process
+    {
+        switch ($PSCmdlet.ParameterSetName)
+        {
+            'Index' 
+            {
+                foreach($conn in $Global:nessusconn)
+                {
+                    if ($conn.index -eq $Index)
+                    {
+                        $NSession = $conn
+                    }
+                }
+            }
+
+            'Session'
+            {
+                $NSession = $Session
+            }
+        }
+
+        try
+        {
+            $Reply = $NSession.SessionState.ExecuteCommand2("/tag/create", $Options)
+        }
+        catch [System.Management.Automation.MethodInvocationException]
+        {
+            write-verbose "The session has expired, Re-authenticating"
+            $reauth = $NSession.SessionManager.Login(
+                $NSession.SessionState.Username, 
+                $NSession.SessionState.Password, 
+                [ref]$true)
+            if ($reauth.reply.status -eq "OK")
+            {
+                $Reply = $NSession.SessionState.ExecuteCommand2("/tag/create",$Options)
+            }
+            else
+            {
+                throw "Session expired could not Re-Authenticate"
+            }
+        }
+
+        if ($Reply)
+        {
+            $folder = $Reply | ConvertFrom-Json
+            if($folder.reply.status -eq "Ok")
+            {
+                Write-Verbose "Creation of folder was succesful."
+            }
+            else
+            {
+                throw "Folder creation failed $($folder.reply.contents)"
+            }
+           
+        }
+    }
+    End
+    {
+    }
+}
+
+
+function Move-NessusScan
+{
+    [CmdletBinding(DefaultParameterSetName = 'Index')]
+    param(
+        [Parameter(Mandatory=$true,
+                   Position=0,
+                   ValueFromPipeline=$True,
+                   ParameterSetName = "Index")]
+        [int32]
+        $Index,
+
+        [Parameter(Mandatory=$true,
+                   ParameterSetName = "Session",
+                   Position=0,
+                   ValueFromPipeline=$True)]
+        [Nessus.Server.Session]
+        $Session,
+
+        [Parameter(Mandatory=$true,
+                   Position=1,
+                   ValueFromPipeline=$True)]
+        [string]
+        $ScanID,
+
+        [Parameter(Mandatory=$true,
+                   Position=2,
+                   ValueFromPipeline=$True)]
+        [int]
+        $TagId
+    )
+
+    Begin
+    {
+        switch ($PSCmdlet.ParameterSetName)
+        {
+            'Index' 
+            {
+                foreach($conn in $Global:nessusconn)
+                {
+                    if ($conn.index -eq $Index)
+                    {
+                        $NSession = $conn
+                    }
+                }
+            }
+
+            'Session'
+            {
+                $NSession = $Session
+            }
+        }
+
+        # Collect scans and tags for verification.
+        $Scans = Get-NessusScan -Session $NSession
+        $Tags = Get-NessusScanFolder -Session $NSession
+
+        # Check if tag for folder exists.
+        $TagFound = $false
+
+        foreach ($tag in $Tags)
+        {
+            if ($tag.id -eq $TagID)
+            {
+                $TagFound = $true
+                break
+            }
+        }
+
+        if (!($TagFound))
+        {
+            throw "Folder tag id provided does not exists." 
+        }
+
+        # Check if scan exists
+        $ScanList = @{}
+        
+        foreach ($scan in $Scans)
+        {
+            $ScanList.Add($scan.id, $scan.name)
+        }
+
+        $ScanName = $ScanList[$ScanID]
+
+        if (!($ScanName))
+        {
+            throw "ScanID Provided does not exists"   
+        }
+
+        # Random number for sequence request
+        $rand = New-Object System.Random
+        
+        # Options for XMLRPC request
+        $Options = @{
+            id = $ScanID
+            tags = $TagID
+            name = $ScanName
+            seq = $rand.Next()
+            json = 1
+            token = $NSession.Token
+        }
+        
+    }
+    Process
+    {
+        try
+        {
+            $Reply = $NSession.SessionState.ExecuteCommand2("/result/edit", $Options)
+        }
+        catch [System.Management.Automation.MethodInvocationException]
+        {
+            write-verbose "The session has expired, Re-authenticating"
+            $reauth = $NSession.SessionManager.Login(
+                $NSession.SessionState.Username, 
+                $NSession.SessionState.Password, 
+                [ref]$true)
+            if ($reauth.reply.status -eq "OK")
+            {
+                $Reply = $NSession.SessionState.ExecuteCommand2("/result/edit",$Options)
+            }
+            else
+            {
+                throw "Session expired could not Re-Authenticate"
+            }
+        }
+
+        if ($Reply)
+        {
+            $folder = $Reply | ConvertFrom-Json
+            if($folder.reply.status -eq "Ok")
+            {
+                Write-Verbose "Creation of folder was succesful."
+            }
+            else
+            {
+                throw "Movement failed $($folder.reply.contents)"
+            }
+           
+        }
+    }
+    End
+    {
+    }
+}
+
+
+function Remove-NessusScanFolder
+{
+    [CmdletBinding(DefaultParameterSetName = 'Index')]
+    param(
+        [Parameter(Mandatory=$true,
+                   Position=0,
+                   ValueFromPipeline=$True,
+                   ParameterSetName = "Index")]
+        [int32]
+        $Index,
+
+        [Parameter(Mandatory=$true,
+                   ParameterSetName = "Session",
+                   Position=0,
+                   ValueFromPipeline=$True)]
+        [Nessus.Server.Session]
+        $Session,
+
+        [Parameter(Mandatory=$true,
+                   Position=1,
+                   ValueFromPipeline=$True)]
+        [int]
+        $TagId
+    )
+
+    Begin
+    {
+        $Tags = Get-NessusScanFolder -Session $NSession
+
+        # Check if tag for folder exists.
+        $TagFound = $false
+
+        foreach ($tag in $Tags)
+        {
+            if ($tag.id -eq $TagId)
+            {
+                $TagFound = $true
+                break
+            }
+        }
+
+        if (!($TagFound))
+        {
+            throw "Folder tag id provided does not exists." 
+        }
+
+        # Random number for sequence request
+        $rand = New-Object System.Random
+        
+        # Options for XMLRPC request
+        $Options = @{
+            tag_id = $TagId
+            seq = $rand.Next()
+            json = 1
+        }
+
+    }
+    Process
+    {
+        switch ($PSCmdlet.ParameterSetName)
+        {
+            'Index' 
+            {
+                foreach($conn in $Global:nessusconn)
+                {
+                    if ($conn.index -eq $Index)
+                    {
+                        $NSession = $conn
+                    }
+                }
+            }
+
+            'Session'
+            {
+                $NSession = $Session
+            }
+        }
+
+        try
+        {
+            $Reply = $NSession.SessionState.ExecuteCommand2("/tag/delete", $Options)
+        }
+        catch [System.Management.Automation.MethodInvocationException]
+        {
+            write-verbose "The session has expired, Re-authenticating"
+            $reauth = $NSession.SessionManager.Login(
+                $NSession.SessionState.Username, 
+                $NSession.SessionState.Password, 
+                [ref]$true)
+            if ($reauth.reply.status -eq "OK")
+            {
+                $Reply = $NSession.SessionState.ExecuteCommand2("/tag/delete",$Options)
+            }
+            else
+            {
+                throw "Session expired could not Re-Authenticate"
+            }
+        }
+
+        if ($Reply)
+        {
+            $folder = $Reply | ConvertFrom-Json
+            if($folder.reply.status -eq "Ok")
+            {
+                Write-Verbose "Removal of folder was succesful."
+            }
+            else
+            {
+                throw "Removal of folder failed."
+            }
+        }
+    }
+    End
+    {
+    }
+}
+
+
+function Rename-NessusScanFolder
+{
+    [CmdletBinding(DefaultParameterSetName = 'Index')]
+    param(
+        [Parameter(Mandatory=$true,
+                   Position=0,
+                   ValueFromPipeline=$True,
+                   ParameterSetName = "Index")]
+        [int32]
+        $Index,
+
+        [Parameter(Mandatory=$true,
+                   ParameterSetName = "Session",
+                   Position=0,
+                   ValueFromPipeline=$True)]
+        [Nessus.Server.Session]
+        $Session,
+
+        [Parameter(Mandatory=$true,
+                   Position=1,
+                   ValueFromPipeline=$True)]
+        [int]
+        $TagId,
+
+        [Parameter(Mandatory=$true,
+                   Position=1,
+                   ValueFromPipeline=$True)]
+        [string]
+        $Name
+    )
+
+    Begin
+    {
+        $Tags = Get-NessusScanFolder -Session $NSession
+
+        # Check if tag for folder exists.
+        $TagFound = $false
+
+        foreach ($tag in $Tags)
+        {
+            if ($tag.id -eq $TagId)
+            {
+                $TagFound = $true
+                break
+            }
+        }
+
+        if (!($TagFound))
+        {
+            throw "Folder tag id provided does not exists." 
+        }
+
+        # Random number for sequence request
+        $rand = New-Object System.Random
+        
+        # Options for XMLRPC request
+        $Options = @{
+            tag_id = $TagId
+            name   = $Name
+            seq    = $rand.Next()
+            json   = 1
+        }
+
+    }
+    Process
+    {
+        switch ($PSCmdlet.ParameterSetName)
+        {
+            'Index' 
+            {
+                foreach($conn in $Global:nessusconn)
+                {
+                    if ($conn.index -eq $Index)
+                    {
+                        $NSession = $conn
+                    }
+                }
+            }
+
+            'Session'
+            {
+                $NSession = $Session
+            }
+        }
+
+        try
+        {
+            $Reply = $NSession.SessionState.ExecuteCommand2("/tag/edit", $Options)
+        }
+        catch [System.Management.Automation.MethodInvocationException]
+        {
+            write-verbose "The session has expired, Re-authenticating"
+            $reauth = $NSession.SessionManager.Login(
+                $NSession.SessionState.Username, 
+                $NSession.SessionState.Password, 
+                [ref]$true)
+            if ($reauth.reply.status -eq "OK")
+            {
+                $Reply = $NSession.SessionState.ExecuteCommand2("/tag/edit",$Options)
+            }
+            else
+            {
+                throw "Session expired could not Re-Authenticate"
+            }
+        }
+
+        if ($Reply)
+        {
+            $folder = $Reply | ConvertFrom-Json
+            if($folder.reply.status -eq "Ok")
+            {
+                Write-Verbose "Removal of folder was succesful."
+            }
+            else
+            {
+                throw "Removal of folder failed."
+            }
+        }
+    }
+    End
+    {
+    }
+}
+
+
+function Get-NessusMultiScannerInfo
+{
+    [CmdletBinding(DefaultParameterSetName = 'Index')]
+    param(
+        [Parameter(Mandatory=$true,
+                   Position=0,
+                   ValueFromPipeline=$True,
+                   ParameterSetName = "Index")]
+        [int32]
+        $Index,
+
+        [Parameter(Mandatory=$true,
+                   ParameterSetName = "Session",
+                   Position=0,
+                   ValueFromPipeline=$True)]
+        [Nessus.Server.Session]
+        $Session
+    )
+
+    Begin
+    {
+        # Random number for sequence request
+        $rand = New-Object System.Random
+        
+        # Options for XMLRPC request
+        $Options = @{
+            seq = $rand.Next()
+            json = 1
+        }
+
+    }
+    Process
+    {
+        switch ($PSCmdlet.ParameterSetName)
+        {
+            'Index' 
+            {
+                foreach($conn in $Global:nessusconn)
+                {
+                    if ($conn.index -eq $Index)
+                    {
+                        $NSession = $conn
+                    }
+                }
+            }
+
+            'Session'
+            {
+                $NSession = $Session
+            }
+        }
+
+        try
+        {
+            $Reply = $NSession.SessionState.ExecuteCommand2("/multi-scanner/info", $Options)
+        }
+        catch [System.Management.Automation.MethodInvocationException]
+        {
+            write-verbose "The session has expired, Re-authenticating"
+            $reauth = $NSession.SessionManager.Login(
+                $NSession.SessionState.Username, 
+                $NSession.SessionState.Password, 
+                [ref]$true)
+            if ($reauth.reply.status -eq "OK")
+            {
+                $Reply = $NSession.SessionState.ExecuteCommand2("/multi-scanner/info",$Options)
+            }
+            else
+            {
+                throw "Session expired could not Re-Authenticate"
+            }
+        }
+
+        if ($Reply)
+        {
+            $ScannerInfo = ($Reply | ConvertFrom-Json).reply.contents
+            $ScannerInfo.pstypenames.insert(0,'Nessus.MultiScanner.Info')
+            $ScannerInfo
+        }
+    }
+    End
+    {
+    }
+}
+
 <# function New-NessusScheduledScanTemplate
 {
     [CmdletBinding()]

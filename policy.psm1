@@ -1122,6 +1122,7 @@ function Copy-NessusPolicy
     }
 }
 
+
 <#
 .Synopsis
    Sets on a given policy the Windows Credential to Try
@@ -1315,6 +1316,8 @@ function Set-NessusPolicyWindowsCredential
     }
 }
 
+
+
 function Set-NessusPolicySSHCredential
 {
     [CmdletBinding(DefaultParameterSetName = 'Index')]
@@ -1503,3 +1506,297 @@ function Set-NessusPolicySSHCredential
     }
 }
 
+
+<#
+.Synopsis
+   Enable one or more Plugin in a Policy.
+.DESCRIPTION
+   Enable one or more Plugin by their ID number in a specified policy given its Id.
+.EXAMPLE
+   Enable-NessusPolicyPlugin -Index 0 -PolicyID 6 -PluginID 71264,71263,71262 -Verbose
+VERBOSE: Enabling plugin 71264
+VERBOSE: Enabling plugin 71263
+VERBOSE: Enabling plugin 71262
+#>
+function Enable-NessusPolicyPlugin
+{
+    [CmdletBinding()]
+    [OutputType([int])]
+    param(
+        [Parameter(Mandatory=$true,
+                   Position=0,
+                   ValueFromPipeline=$True,
+                   ParameterSetName = "Index")]
+        [int32]
+        $Index,
+
+        [Parameter(Mandatory=$true,
+                   ParameterSetName = "Session",
+                   Position=0,
+                   ValueFromPipeline=$True)]
+        [Nessus.Server.Session]
+        $Session,
+
+        [Parameter(Mandatory=$true,
+                   Position=1,
+                   ParameterSetName = "Session")]
+        [Parameter(Mandatory=$true,
+                   Position=2,
+                   ParameterSetName = "Index")]
+        [int]$PolicyID,
+
+        [Parameter(Mandatory=$true,
+                   Position=2,
+                   ParameterSetName = "Session")]
+        [Parameter(Mandatory=$true,
+                   Position=2,
+                   ParameterSetName = "Index")]
+        [int[]]$PluginID
+    )
+    Begin
+    {
+        # Random number for sequence request
+        $rand = New-Object System.Random
+        
+        # Options for XMLRPC request
+        $Options = @{
+            seq = $rand.Next()
+            json = 1
+            policy_id = $PolicyID
+        }
+    }
+    Process
+    {
+        switch ($PSCmdlet.ParameterSetName)
+        {
+            'Index' 
+            {
+                foreach($conn in $Global:nessusconn)
+                {
+                    if ($conn.index -eq $Index)
+                    {
+                        $NSession = $conn
+                    }
+                }
+            }
+
+            'Session'
+            {
+                $NSession = $Session
+            }
+        }
+        $SearchOptions = $Options
+
+        $SearchOptions.Add('filter.0.filter', 'plugin_id')
+        $SearchOptions.Add('filter.0.quality', 'eq')
+        $SearchOptions.Add('filter.0.value', 0)
+        $SearchOptions.Add('filter.search_type', 'and')
+
+        foreach ($plugin in $PluginID)
+        {
+            
+            $SearchOptions['filter.0.value'] = $plugin
+            try
+            {
+                $Reply = $NSession.SessionState.ExecuteCommand2("/policy/list/families", $SearchOptions)
+            }
+            catch [System.Management.Automation.MethodInvocationException]
+            {
+                write-verbose "The session has expired, Re-authenticating"
+                $reauth = $NSession.SessionManager.Login(
+                    $NSession.SessionState.Username, 
+                    $NSession.SessionState.Password, 
+                    [ref]$true)
+                if ($reauth.reply.status -eq "OK")
+                {
+                    $Reply = $NSession.SessionState.ExecuteCommand2("/policy/list/families",$SearchOptions)
+                }
+                else
+                {
+                    throw "Session expired could not Re-Authenticate"
+                }
+            }
+
+            if ($Reply)
+            {
+                $reply = ($Reply | ConvertFrom-Json).reply.contents.policyfamilies.family
+                if ($reply)
+                {
+                    if ($Reply.status -ne "enabled")
+                    {
+                        $EnableOps = @{
+                            seq = $rand.Next()
+                            json = 1
+                            policy_id = $PolicyID
+                        }
+                        $ParamName = "family.$($Reply.id).plugins.$($plugin)"
+
+                        $EnableOps.Add($ParamName,"enabled")
+
+                        Write-Verbose "Enabling plugin $($plugin)"
+                        $EnableReply = $NSession.SessionState.ExecuteCommand2("/policy/update",$EnableOps)
+
+                    }
+                    else
+                    {
+                        Write-Verbose "Plugin $($plugin) already enabled."
+                    }
+                }
+                else
+                {
+                    Write-Warning "Plugin $($plugin) was not found and could not be enabled."
+                }
+            }
+        }
+    }
+    End
+    {
+    }
+}
+
+<#
+.Synopsis
+   Disable one or more Plugin in a Policy.
+.DESCRIPTION
+   Disable one or more Plugin by their ID number in a specified policy given its Id.
+.EXAMPLE
+   Disable-NessusPolicyPlugin -Index 0 -PolicyID 6 -PluginID 71264,71263,71262 -Verbose
+VERBOSE: Disabling plugin 71264
+VERBOSE: Disabling plugin 71263
+VERBOSE: Disabling plugin 71262
+#>
+function Disable-NessusPolicyPlugin
+{
+    [CmdletBinding()]
+    [OutputType([int])]
+    param(
+        [Parameter(Mandatory=$true,
+                   Position=0,
+                   ValueFromPipeline=$True,
+                   ParameterSetName = "Index")]
+        [int32]
+        $Index,
+
+        [Parameter(Mandatory=$true,
+                   ParameterSetName = "Session",
+                   Position=0,
+                   ValueFromPipeline=$True)]
+        [Nessus.Server.Session]
+        $Session,
+
+        [Parameter(Mandatory=$true,
+                   Position=1,
+                   ParameterSetName = "Session")]
+        [Parameter(Mandatory=$true,
+                   Position=2,
+                   ParameterSetName = "Index")]
+        [int]$PolicyID,
+
+        [Parameter(Mandatory=$true,
+                   Position=2,
+                   ParameterSetName = "Session")]
+        [Parameter(Mandatory=$true,
+                   Position=2,
+                   ParameterSetName = "Index")]
+        [int[]]$PluginID
+    )
+    Begin
+    {
+        # Random number for sequence request
+        $rand = New-Object System.Random
+        
+        # Options for XMLRPC request
+        $Options = @{
+            seq = $rand.Next()
+            json = 1
+            policy_id = $PolicyID
+        }
+    }
+    Process
+    {
+        switch ($PSCmdlet.ParameterSetName)
+        {
+            'Index' 
+            {
+                foreach($conn in $Global:nessusconn)
+                {
+                    if ($conn.index -eq $Index)
+                    {
+                        $NSession = $conn
+                    }
+                }
+            }
+
+            'Session'
+            {
+                $NSession = $Session
+            }
+        }
+        $SearchOptions = $Options
+
+        $SearchOptions.Add('filter.0.filter', 'plugin_id')
+        $SearchOptions.Add('filter.0.quality', 'eq')
+        $SearchOptions.Add('filter.0.value', 0)
+        $SearchOptions.Add('filter.search_type', 'and')
+
+        foreach ($plugin in $PluginID)
+        {
+            
+            $SearchOptions['filter.0.value'] = $plugin
+            try
+            {
+                $Reply = $NSession.SessionState.ExecuteCommand2("/policy/list/families", $SearchOptions)
+            }
+            catch [System.Management.Automation.MethodInvocationException]
+            {
+                write-verbose "The session has expired, Re-authenticating"
+                $reauth = $NSession.SessionManager.Login(
+                    $NSession.SessionState.Username, 
+                    $NSession.SessionState.Password, 
+                    [ref]$true)
+                if ($reauth.reply.status -eq "OK")
+                {
+                    $Reply = $NSession.SessionState.ExecuteCommand2("/policy/list/families",$SearchOptions)
+                }
+                else
+                {
+                    throw "Session expired could not Re-Authenticate"
+                }
+            }
+
+            if ($Reply)
+            {
+                $reply = ($Reply | ConvertFrom-Json).reply.contents.policyfamilies.family
+                if ($reply)
+                {
+                    if ($Reply.status -ne "disabled")
+                    {
+                        $EnableOps = @{
+                            seq = $rand.Next()
+                            json = 1
+                            policy_id = $PolicyID
+                        }
+                        $ParamName = "family.$($Reply.id).plugins.$($plugin)"
+
+                        $EnableOps.Add($ParamName,"disabled")
+
+                        Write-Verbose "Disabling plugin $($plugin)"
+                        $EnableReply = $NSession.SessionState.ExecuteCommand2("/policy/update",$EnableOps)
+
+                    }
+                    else
+                    {
+                        Write-Verbose "Plugin $($plugin) already Disabled."
+                    }
+                }
+                else
+                {
+                    Write-Warning "Plugin $($plugin) was not found and could not be enabled."
+                }
+            }
+        }
+    }
+    End
+    {
+    }
+}

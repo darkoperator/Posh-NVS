@@ -31,35 +31,35 @@ function Invoke-NessusScan
         # Nessus Session Index
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Index")]
+        ParameterSetName = 'Index')]
         [int32[]]$Index,
 
         # Nessus Session Object
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Session",
+        ParameterSetName = 'Session',
         ValueFromPipeline=$True)]
         [Nessus.Server.Session]$Session,
 
         # PolicyID for the policy to use for the scan 
         [Parameter(Mandatory=$true,
         Position=1,
-        ParameterSetName = "Session")]
-        [Parameter(ParameterSetName = "Index")]
+        ParameterSetName = 'Session')]
+        [Parameter(ParameterSetName = 'Index')]
         [int]$PolicyID,
 
         # Targets to execute scan against
         [Parameter(Mandatory=$true,
         Position=2,
-        ParameterSetName = "Session")]
-        [Parameter(ParameterSetName = "Index")]
+        ParameterSetName = 'Session')]
+        [Parameter(ParameterSetName = 'Index')]
         [string[]]$Targets,
 
         # Name for the Scan
         [Parameter(Mandatory=$true,
         Position=3,
-        ParameterSetName = "Session")]
-        [Parameter(ParameterSetName = "Index")]
+        ParameterSetName = 'Session')]
+        [Parameter(ParameterSetName = 'Index')]
         [string]$Name
     )
 
@@ -89,24 +89,24 @@ function Invoke-NessusScan
         }
         Catch [Net.WebException] {
            
-            write-verbose "The session has expired, Re-authenticating"
+            write-verbose 'The session has expired, Re-authenticating'
             $reauth = $ns.SessionManager.Login(
                 $ns.SessionState.Username, 
                 $ns.SessionState.Password, 
                 [ref]$true)
-            if ($reauth.reply.status -eq "OK"){
+            if ($reauth.reply.status -eq 'OK'){
                 $request_reply = $NSession.SessionManager.CreateScan(
                     $targetlist,$PolicyID,$Name).reply
             }
             else{
-                throw "Session expired could not Re-Authenticate"
+                throw 'Session expired could not Re-Authenticate'
             }   
         }
 
-        if ($request_reply.status -eq "OK"){
+        if ($request_reply.status -eq 'OK'){
             # Returns epoch time so we need to tranform it
             $origin = New-Object -Type DateTime -ArgumentList 1970, 1, 1, 0, 0, 0, 0
-            Write-Verbose -Message "We got an OK reply from the session."
+            Write-Verbose -Message 'We got an OK reply from the session.'
             # Get the UUID of the report to look for it in the Scan list
             $created_uuid = $request_reply.contents.scan.uuid
             # Search for the recently created report
@@ -156,19 +156,19 @@ function Stop-NessusScan
     param(
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Index")]
+        ParameterSetName = 'Index')]
         [int32[]]$Index,
 
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Session",
+        ParameterSetName = 'Session',
         ValueFromPipeline=$True)]
         [Nessus.Server.Session]$Session,
 
         [Parameter(Mandatory=$false,
         Position=1,
-        ParameterSetName = "Session")]
-        [Parameter(ParameterSetName = "Index")]
+        ParameterSetName = 'Session')]
+        [Parameter(ParameterSetName = 'Index')]
         $ScanID
 
     )
@@ -195,24 +195,24 @@ function Stop-NessusScan
         }
         Catch [Net.WebException] {
            
-            write-verbose "The session has expired, Re-authenticating"
+            write-verbose 'The session has expired, Re-authenticating'
             $reauth = $ns.SessionManager.Login(
                 $ns.SessionState.Username, 
                 $ns.SessionState.Password, 
                 [ref]$true)
-            if ($reauth.reply.status -eq "OK"){
+            if ($reauth.reply.status -eq 'OK'){
                 $request_reply = $NSession.SessionManager.StopScan(
                     $ScanID).reply
             }
             else{
-                throw "Session expired could not Re-Authenticate"
+                throw 'Session expired could not Re-Authenticate'
             }   
         }
 
-        if ($request_reply.status -eq "OK" -and $request_reply.contents){
+        if ($request_reply.status -eq 'OK' -and $request_reply.contents){
             # Returns epoch time so we need to tranform it
             $origin = New-Object -Type DateTime -ArgumentList 1970, 1, 1, 0, 0, 0, 0
-            Write-Verbose -Message "We got an OK reply from the session."
+            Write-Verbose -Message 'We got an OK reply from the session.'
             # Get the UUID of the report to look for it in the Scan list
             $created_uuid = $request_reply.contents.scan.uuid
             # Search for the recently created report
@@ -231,8 +231,8 @@ function Stop-NessusScan
                 }
             }
         }
-        elseif(($request_reply.status -eq "OK") -and (!($request_reply.contents))) {
-            throw "ScanID not found"
+        elseif(($request_reply.status -eq 'OK') -and (!($request_reply.contents))) {
+            throw 'ScanID not found'
         }
         else {
             throw $request_reply.contents
@@ -267,19 +267,19 @@ function Resume-NessusScan
     param(
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Index")]
+        ParameterSetName = 'Index')]
         [int32[]]$Index,
 
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Session",
+        ParameterSetName = 'Session',
         ValueFromPipeline=$True)]
         [Nessus.Server.Session]$Session,
 
         [Parameter(Mandatory=$false,
         Position=1,
-        ParameterSetName = "Session")]
-        [Parameter(ParameterSetName = "Index")]
+        ParameterSetName = 'Session')]
+        [Parameter(ParameterSetName = 'Index')]
         $ScanID
 
     )
@@ -310,26 +310,26 @@ function Resume-NessusScan
         Catch [Net.WebException] 
         {
            
-            write-verbose "The session has expired, Re-authenticating"
+            write-verbose 'The session has expired, Re-authenticating'
             $reauth = $NSession.SessionManager.Login(
                 $NSession.SessionState.Username, 
                 $NSession.SessionState.Password, 
                 [ref]$true)
-            if ($reauth.reply.status -eq "OK")
+            if ($reauth.reply.status -eq 'OK')
             {
                 $request_reply = $NSession.SessionManager.ResumeScan(
                     $ScanID).reply
             }
             else
             {
-                throw "Session expired could not Re-Authenticate"
+                throw 'Session expired could not Re-Authenticate'
             }   
         }
 
-        if ($request_reply.status -eq "OK" -and $request_reply.contents){
+        if ($request_reply.status -eq 'OK' -and $request_reply.contents){
             # Returns epoch time so we need to tranform it
             $origin = New-Object -Type DateTime -ArgumentList 1970, 1, 1, 0, 0, 0, 0
-            Write-Verbose -Message "We got an OK reply from the session."
+            Write-Verbose -Message 'We got an OK reply from the session.'
             # Get the UUID of the report to look for it in the Scan list
             $created_uuid = $request_reply.contents.scan.uuid
             # Search for the recently created report
@@ -348,8 +348,8 @@ function Resume-NessusScan
                 }
             }
         }
-        elseif(($request_reply.status -eq "OK") -and (!($request_reply.contents))) {
-            throw "ScanID not found"
+        elseif(($request_reply.status -eq 'OK') -and (!($request_reply.contents))) {
+            throw 'ScanID not found'
         }
         else {
             throw $request_reply.contents
@@ -383,19 +383,19 @@ function Suspend-NessusScan
     param(
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Index")]
+        ParameterSetName = 'Index')]
         [int32[]]$Index,
 
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Session",
+        ParameterSetName = 'Session',
         ValueFromPipeline=$True)]
         [Nessus.Server.Session]$Session,
 
         [Parameter(Mandatory=$false,
         Position=1,
-        ParameterSetName = "Session")]
-        [Parameter(ParameterSetName = "Index")]
+        ParameterSetName = 'Session')]
+        [Parameter(ParameterSetName = 'Index')]
         $ScanID
 
     )
@@ -424,25 +424,25 @@ function Suspend-NessusScan
         }
         Catch [Net.WebException] {
            
-            write-verbose "The session has expired, Re-authenticating"
+            write-verbose 'The session has expired, Re-authenticating'
             $reauth = $NSession.SessionManager.Login(
                 $NSession.SessionState.Username, 
                 $NSession.SessionState.Password, 
                 [ref]$true)
-            if ($reauth.reply.status -eq "OK"){
+            if ($reauth.reply.status -eq 'OK'){
                 $request_reply = $NSession.SessionManager.PauseScan(
                     $ScanID).reply
             }
             else{
-                throw "Session expired could not Re-Authenticate"
+                throw 'Session expired could not Re-Authenticate'
             }   
         }
 
-        if ($request_reply.status -eq "OK" -and $request_reply.contents)
+        if ($request_reply.status -eq 'OK' -and $request_reply.contents)
         {
             # Returns epoch time so we need to tranform it
             $origin = New-Object -Type DateTime -ArgumentList 1970, 1, 1, 0, 0, 0, 0
-            Write-Verbose -Message "We got an OK reply from the session."
+            Write-Verbose -Message 'We got an OK reply from the session.'
             # Get the UUID of the report to look for it in the Scan list
             $created_uuid = $request_reply.contents.scan.uuid
             # Search for the recently created report
@@ -463,9 +463,9 @@ function Suspend-NessusScan
                 }
             }
         }
-        elseif(($request_reply.status -eq "OK") -and (!($request_reply.contents))) 
+        elseif(($request_reply.status -eq 'OK') -and (!($request_reply.contents))) 
         {
-            throw "ScanID not found"
+            throw 'ScanID not found'
         }
         else 
         {
@@ -506,19 +506,19 @@ function Show-NessusScanTemplate
     param(
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Index")]
+        ParameterSetName = 'Index')]
         [int32[]]$Index,
 
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Session",
+        ParameterSetName = 'Session',
         ValueFromPipeline=$True)]
         [Nessus.Server.Session]$Session,
 
         [Parameter(Mandatory=$true,
         Position=1,
-        ParameterSetName = "Session")]
-        [Parameter(ParameterSetName = "Index")]
+        ParameterSetName = 'Session')]
+        [Parameter(ParameterSetName = 'Index')]
         $TemplateID
 
     )
@@ -548,18 +548,18 @@ function Show-NessusScanTemplate
         }
         Catch [Net.WebException] {
            
-            write-verbose "The session has expired, Re-authenticating"
+            write-verbose 'The session has expired, Re-authenticating'
             $reauth = $NSession.SessionManager.Login(
                 $NSession.SessionState.Username, 
                 $NSession.SessionState.Password, 
                 [ref]$true)
-            if ($reauth.reply.status -eq "OK"){
+            if ($reauth.reply.status -eq 'OK'){
                 $request_reply = $NSession.SessionManager.ListTemplates().reply
                 $templates = $request_reply.contents.templates.templateList.template
                 $policies = $request_reply.contents.policies.policies.policy
             }
             else{
-                throw "Session expired could not Re-Authenticate"
+                throw 'Session expired could not Re-Authenticate'
             }   
         }
 
@@ -631,19 +631,19 @@ function Invoke-NessusScanTemplate
     param(
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Index")]
+        ParameterSetName = 'Index')]
         [int32[]]$Index,
 
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Session",
+        ParameterSetName = 'Session',
         ValueFromPipeline=$True)]
         [Nessus.Server.Session]$Session,
 
         [Parameter(Mandatory=$true,
         Position=1,
-        ParameterSetName = "Session")]
-        [Parameter(ParameterSetName = "Index")]
+        ParameterSetName = 'Session')]
+        [Parameter(ParameterSetName = 'Index')]
         [string]$TemplateID
     )
 
@@ -676,25 +676,25 @@ function Invoke-NessusScanTemplate
         Catch [Net.WebException] 
         {
            
-            write-verbose "The session has expired, Re-authenticating"
+            write-verbose 'The session has expired, Re-authenticating'
             $reauth = $NSession.SessionManager.Login(
                 $NSession.SessionState.Username, 
                 $NSession.SessionState.Password, 
                 [ref]$true)
-            if ($reauth.reply.status -eq "OK")
+            if ($reauth.reply.status -eq 'OK')
             {
                 $request_reply = $NSession.SessionManager.LaunchScanTemplate($TemplateID).reply
             }
             else
             {
-                throw "Session expired could not Re-Authenticate"
+                throw 'Session expired could not Re-Authenticate'
             }   
         }
-        if ($request_reply.status -eq "OK")
+        if ($request_reply.status -eq 'OK')
         {
             # Returns epoch time so we need to tranform it
             $origin = New-Object -Type DateTime -ArgumentList 1970, 1, 1, 0, 0, 0, 0
-            Write-Verbose -Message "We got an OK reply from the session."
+            Write-Verbose -Message 'We got an OK reply from the session.'
             # Get the UUID of the report to look for it in the Scan list
             $created_uuid = $request_reply.contents.scan.uuid
             # Search for the recently created report
@@ -747,31 +747,31 @@ function New-NessusScanTemplate
     param(
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Index")]
+        ParameterSetName = 'Index')]
         [int[]]$Index,
 
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Session",
+        ParameterSetName = 'Session',
         ValueFromPipeline=$True)]
         [Nessus.Server.Session]$Session,
 
         [Parameter(Mandatory=$true,
         Position=1,
-        ParameterSetName = "Session")]
-        [Parameter(ParameterSetName = "Index")]
+        ParameterSetName = 'Session')]
+        [Parameter(ParameterSetName = 'Index')]
         [string]$TemplateName,
 
         [Parameter(Mandatory=$true,
         Position=2,
-        ParameterSetName = "Session")]
-        [Parameter(ParameterSetName = "Index")]
+        ParameterSetName = 'Session')]
+        [Parameter(ParameterSetName = 'Index')]
         [string]$Targets,
 
         [Parameter(Mandatory=$true,
         Position=3,
-        ParameterSetName = "Session")]
-        [Parameter(ParameterSetName = "Index")]
+        ParameterSetName = 'Session')]
+        [Parameter(ParameterSetName = 'Index')]
         [int]$PolicyID
     )
 
@@ -793,27 +793,27 @@ function New-NessusScanTemplate
                 $NSession = $Session
         }
 
-        $target = $Targets -join " "
+        $target = $Targets -join ' '
 
         try {
             $request_reply = $NSession.SessionManager.CreateScanTemplate($TemplateName, $PolicyID, $Target).reply
         }
         Catch [Net.WebException] {
            
-            write-verbose "The session has expired, Re-authenticating"
+            write-verbose 'The session has expired, Re-authenticating'
             $reauth = $NSession.SessionManager.Login(
                 $NSession.SessionState.Username, 
                 $NSession.SessionState.Password, 
                 [ref]$true)
-            if ($reauth.reply.status -eq "OK"){
+            if ($reauth.reply.status -eq 'OK'){
                 $request_reply = $NSession.SessionManager.CreateScanTemplate($TemplateName, $PolicyID, $Target).reply
             }
             else{
-                throw "Session expired could not Re-Authenticate"
+                throw 'Session expired could not Re-Authenticate'
             }   
         }
-        if ($request_reply.status -eq "OK"){
-            Write-Verbose -Message "We got an OK reply from the session."
+        if ($request_reply.status -eq 'OK'){
+            Write-Verbose -Message 'We got an OK reply from the session.'
             $template = $request_reply.contents.template
             $template_properties = [ordered]@{
                     TemplateID = $template.name
@@ -854,19 +854,19 @@ function Remove-NessusScanTemplate
     param(
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Index")]
+        ParameterSetName = 'Index')]
         [int32[]]$Index,
 
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Session",
+        ParameterSetName = 'Session',
         ValueFromPipeline=$True)]
         [Nessus.Server.Session]$Session,
 
         [Parameter(Mandatory=$true,
         Position=1,
-        ParameterSetName = "Session")]
-        [Parameter(ParameterSetName = "Index")]
+        ParameterSetName = 'Session')]
+        [Parameter(ParameterSetName = 'Index')]
         [string]$TemplateID
     )
     
@@ -896,12 +896,12 @@ function Remove-NessusScanTemplate
         Catch [Net.WebException] 
         {
            
-            write-verbose "The session has expired, Re-authenticating"
+            write-verbose 'The session has expired, Re-authenticating'
             $reauth = $ns.SessionManager.Login(
                 $ns.SessionState.Username, 
                 $ns.SessionState.Password, 
                 [ref]$true)
-            if ($reauth.reply.status -eq "OK")
+            if ($reauth.reply.status -eq 'OK')
             {
                 $request_reply = $NSession.SessionManager.ListTemplates().reply
                 $templates = $request_reply.contents.templates.templateList.template
@@ -909,7 +909,7 @@ function Remove-NessusScanTemplate
             }
             else
             {
-                throw "Session expired could not Re-Authenticate"
+                throw 'Session expired could not Re-Authenticate'
             }   
         }
     }
@@ -919,15 +919,15 @@ function Remove-NessusScanTemplate
         $template_found = $false
         foreach($template in $templates) {
             if ($template.name -eq $TemplateID){
-                Write-Verbose "Template was found"
+                Write-Verbose 'Template was found'
                 $template_found = $true
             }
         }
         if ($template_found) 
         {
             $delete_reply = $NSession.SessionManager.DeleteScanTemplate($TemplateID).reply
-            if ($delete_reply.status -eq "OK"){
-                write-verbose "Template deleted successfuly"
+            if ($delete_reply.status -eq 'OK'){
+                write-verbose 'Template deleted successfuly'
                 $true
             }
             else 
@@ -970,33 +970,33 @@ function Update-NessusScanTemplate
     param(
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Index")]
+        ParameterSetName = 'Index')]
         [int32[]]$Index,
 
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Session",
+        ParameterSetName = 'Session',
         ValueFromPipeline=$True)]
         [Nessus.Server.Session]$Session,
 
         [Parameter(Mandatory=$true,
-        ParameterSetName = "Session")]
-        [Parameter(ParameterSetName = "Index")]
+        ParameterSetName = 'Session')]
+        [Parameter(ParameterSetName = 'Index')]
         [string]$TemplateID,
 
         [Parameter(Mandatory=$false,
-        ParameterSetName = "Session")]
-        [Parameter(ParameterSetName = "Index")]
+        ParameterSetName = 'Session')]
+        [Parameter(ParameterSetName = 'Index')]
         [int]$PolicyID,
 
         [Parameter(Mandatory=$false,
-        ParameterSetName = "Session")]
-        [Parameter(ParameterSetName = "Index")]
+        ParameterSetName = 'Session')]
+        [Parameter(ParameterSetName = 'Index')]
         [string[]]$Targets,
 
         [Parameter(Mandatory=$false,
-        ParameterSetName = "Session")]
-        [Parameter(ParameterSetName = "Index")]
+        ParameterSetName = 'Session')]
+        [Parameter(ParameterSetName = 'Index')]
         [string]$Name
     )
 
@@ -1022,13 +1022,13 @@ function Update-NessusScanTemplate
         }
 
         # Check if at least one value was given for change.
-        Write-Verbose "Checking if a value was given for change."
+        Write-Verbose 'Checking if a value was given for change.'
         if (($Targets -gt 0) -or ($PolicyID) -or ($Name))
         {
             try 
             {
                 # Collect current Scan Template on the given session.
-                Write-Verbose "Collecting Scan Templates on the given session to check for presence"
+                Write-Verbose 'Collecting Scan Templates on the given session to check for presence'
                 $request_reply = $NSession.SessionManager.ListTemplates().reply
                 $templates = $request_reply.contents.templates.templateList.template
                 $policies = $request_reply.contents.policies.policies.policy
@@ -1036,12 +1036,12 @@ function Update-NessusScanTemplate
             Catch [Net.WebException] 
             {
                 # If the session timedout we will try to re-authenticate if not raise error.
-                write-verbose "The session has expired, Re-authenticating"
+                write-verbose 'The session has expired, Re-authenticating'
                 $reauth = $ns.SessionManager.Login(
                     $ns.SessionState.Username, 
                     $ns.SessionState.Password, 
                     [ref]$true)
-                if ($reauth.reply.status -eq "OK")
+                if ($reauth.reply.status -eq 'OK')
                 {
                     # If we where able to re-authenticate we will collec the necesarry info.
                     $request_reply = $NSession.SessionManager.ListTemplates().reply
@@ -1050,14 +1050,14 @@ function Update-NessusScanTemplate
                 }
                 else
                 {
-                    throw "Session expired could not Re-Authenticate"
+                    throw 'Session expired could not Re-Authenticate'
                 }   
             }
         }
         else 
         {
             # If no value for changing is given we will throw an exception.
-            throw "No value for change was given"
+            throw 'No value for change was given'
         }
         Write-Verbose "Checking if Templete with ID $($TemplateID) exists before attempting to Update."
         $template_found = $false
@@ -1067,7 +1067,7 @@ function Update-NessusScanTemplate
         {
             if ($template.name -eq $TemplateID)
             {
-                Write-Verbose "Template was found"
+                Write-Verbose 'Template was found'
                 $template_to_update = $template
                 $template_found = $true
             }
@@ -1099,7 +1099,7 @@ function Update-NessusScanTemplate
             # Process Targets
             if ($Targets.Count -gt 0)
             {
-                Write-Verbose "Will be changing targets"
+                Write-Verbose 'Will be changing targets'
                 $targets2update = $Targets -join ' '
             }
             else 
@@ -1112,9 +1112,9 @@ function Update-NessusScanTemplate
                                 $policy2update,
                                 $targets2update).reply
  
-            if ($update_reply.status -eq "OK")
+            if ($update_reply.status -eq 'OK')
             {
-                write-verbose "Template updated successfuly"
+                write-verbose 'Template updated successfuly'
                 $updated_template = $update_reply.contents.template
         
                 $template_properties = [ordered]@{
@@ -1168,12 +1168,12 @@ function Get-NessusScan
         [Parameter(Mandatory=$true,
                    Position=0,
                    ValueFromPipeline=$True,
-                   ParameterSetName = "Index")]
+                   ParameterSetName = 'Index')]
         [int32]
         $Index,
 
         [Parameter(Mandatory=$true,
-                   ParameterSetName = "Session",
+                   ParameterSetName = 'Session',
                    Position=0,
                    ValueFromPipeline=$True)]
         [Nessus.Server.Session]
@@ -1225,22 +1225,22 @@ function Get-NessusScan
 
         try
         {
-            $Reply = $NSession.SessionState.ExecuteCommand2("/result/list", $Options)
+            $Reply = $NSession.SessionState.ExecuteCommand2('/result/list', $Options)
         }
         catch [System.Management.Automation.MethodInvocationException]
         {
-            write-verbose "The session has expired, Re-authenticating"
+            write-verbose 'The session has expired, Re-authenticating'
             $reauth = $NSession.SessionManager.Login(
                 $NSession.SessionState.Username, 
                 $NSession.SessionState.Password, 
                 [ref]$true)
-            if ($reauth.reply.status -eq "OK")
+            if ($reauth.reply.status -eq 'OK')
             {
-                $Reply = $NSession.SessionState.ExecuteCommand2("/result/list",$Options)
+                $Reply = $NSession.SessionState.ExecuteCommand2('/result/list',$Options)
             }
             else
             {
-                throw "Session expired could not Re-Authenticate"
+                throw 'Session expired could not Re-Authenticate'
             }
         }
 
@@ -1278,12 +1278,12 @@ function Get-NessusScanDetail
         [Parameter(Mandatory=$true,
                    Position=0,
                    ValueFromPipeline=$True,
-                   ParameterSetName = "Index")]
+                   ParameterSetName = 'Index')]
         [int32]
         $Index,
 
         [Parameter(Mandatory=$true,
-                   ParameterSetName = "Session",
+                   ParameterSetName = 'Session',
                    Position=0,
                    ValueFromPipeline=$True)]
         [Nessus.Server.Session]
@@ -1334,22 +1334,22 @@ function Get-NessusScanDetail
 
         try
         {
-            $Reply = $NSession.SessionState.ExecuteCommand2("/result/details", $Options)
+            $Reply = $NSession.SessionState.ExecuteCommand2('/result/details', $Options)
         }
         catch [System.Management.Automation.MethodInvocationException]
         {
-            write-verbose "The session has expired, Re-authenticating"
+            write-verbose 'The session has expired, Re-authenticating'
             $reauth = $NSession.SessionManager.Login(
                 $NSession.SessionState.Username, 
                 $NSession.SessionState.Password, 
                 [ref]$true)
-            if ($reauth.reply.status -eq "OK")
+            if ($reauth.reply.status -eq 'OK')
             {
-                $Reply = $NSession.SessionState.ExecuteCommand2("/result/details",$Options)
+                $Reply = $NSession.SessionState.ExecuteCommand2('/result/details',$Options)
             }
             else
             {
-                throw "Session expired could not Re-Authenticate"
+                throw 'Session expired could not Re-Authenticate'
             }
         }
 
@@ -1372,12 +1372,12 @@ function Get-NessusScanFolder
         [Parameter(Mandatory=$true,
                    Position=0,
                    ValueFromPipeline=$True,
-                   ParameterSetName = "Index")]
+                   ParameterSetName = 'Index')]
         [int32]
         $Index,
 
         [Parameter(Mandatory=$true,
-                   ParameterSetName = "Session",
+                   ParameterSetName = 'Session',
                    Position=0,
                    ValueFromPipeline=$True)]
         [Nessus.Server.Session]
@@ -1419,22 +1419,22 @@ function Get-NessusScanFolder
 
         try
         {
-            $Reply = $NSession.SessionState.ExecuteCommand2("/tag/list", $Options)
+            $Reply = $NSession.SessionState.ExecuteCommand2('/tag/list', $Options)
         }
         catch [System.Management.Automation.MethodInvocationException]
         {
-            write-verbose "The session has expired, Re-authenticating"
+            write-verbose 'The session has expired, Re-authenticating'
             $reauth = $NSession.SessionManager.Login(
                 $NSession.SessionState.Username, 
                 $NSession.SessionState.Password, 
                 [ref]$true)
-            if ($reauth.reply.status -eq "OK")
+            if ($reauth.reply.status -eq 'OK')
             {
-                $Reply = $NSession.SessionState.ExecuteCommand2("/tag/list",$Options)
+                $Reply = $NSession.SessionState.ExecuteCommand2('/tag/list',$Options)
             }
             else
             {
-                throw "Session expired could not Re-Authenticate"
+                throw 'Session expired could not Re-Authenticate'
             }
         }
 
@@ -1461,12 +1461,12 @@ function New-NessusScanFolder
         [Parameter(Mandatory=$true,
                    Position=0,
                    ValueFromPipeline=$True,
-                   ParameterSetName = "Index")]
+                   ParameterSetName = 'Index')]
         [int32]
         $Index,
 
         [Parameter(Mandatory=$true,
-                   ParameterSetName = "Session",
+                   ParameterSetName = 'Session',
                    Position=0,
                    ValueFromPipeline=$True)]
         [Nessus.Server.Session]
@@ -1515,31 +1515,31 @@ function New-NessusScanFolder
 
         try
         {
-            $Reply = $NSession.SessionState.ExecuteCommand2("/tag/create", $Options)
+            $Reply = $NSession.SessionState.ExecuteCommand2('/tag/create', $Options)
         }
         catch [System.Management.Automation.MethodInvocationException]
         {
-            write-verbose "The session has expired, Re-authenticating"
+            write-verbose 'The session has expired, Re-authenticating'
             $reauth = $NSession.SessionManager.Login(
                 $NSession.SessionState.Username, 
                 $NSession.SessionState.Password, 
                 [ref]$true)
-            if ($reauth.reply.status -eq "OK")
+            if ($reauth.reply.status -eq 'OK')
             {
-                $Reply = $NSession.SessionState.ExecuteCommand2("/tag/create",$Options)
+                $Reply = $NSession.SessionState.ExecuteCommand2('/tag/create',$Options)
             }
             else
             {
-                throw "Session expired could not Re-Authenticate"
+                throw 'Session expired could not Re-Authenticate'
             }
         }
 
         if ($Reply)
         {
             $folder = $Reply | ConvertFrom-Json
-            if($folder.reply.status -eq "Ok")
+            if($folder.reply.status -eq 'Ok')
             {
-                Write-Verbose "Creation of folder was succesful."
+                Write-Verbose 'Creation of folder was succesful.'
             }
             else
             {
@@ -1561,12 +1561,12 @@ function Move-NessusScan
         [Parameter(Mandatory=$true,
                    Position=0,
                    ValueFromPipeline=$True,
-                   ParameterSetName = "Index")]
+                   ParameterSetName = 'Index')]
         [int32]
         $Index,
 
         [Parameter(Mandatory=$true,
-                   ParameterSetName = "Session",
+                   ParameterSetName = 'Session',
                    Position=0,
                    ValueFromPipeline=$True)]
         [Nessus.Server.Session]
@@ -1624,7 +1624,7 @@ function Move-NessusScan
 
         if (!($TagFound))
         {
-            throw "Folder tag id provided does not exists." 
+            throw 'Folder tag id provided does not exists.' 
         }
 
         # Check if scan exists
@@ -1639,7 +1639,7 @@ function Move-NessusScan
 
         if (!($ScanName))
         {
-            throw "ScanID Provided does not exists"   
+            throw 'ScanID Provided does not exists'   
         }
 
         # Random number for sequence request
@@ -1660,31 +1660,31 @@ function Move-NessusScan
     {
         try
         {
-            $Reply = $NSession.SessionState.ExecuteCommand2("/result/edit", $Options)
+            $Reply = $NSession.SessionState.ExecuteCommand2('/result/edit', $Options)
         }
         catch [System.Management.Automation.MethodInvocationException]
         {
-            write-verbose "The session has expired, Re-authenticating"
+            write-verbose 'The session has expired, Re-authenticating'
             $reauth = $NSession.SessionManager.Login(
                 $NSession.SessionState.Username, 
                 $NSession.SessionState.Password, 
                 [ref]$true)
-            if ($reauth.reply.status -eq "OK")
+            if ($reauth.reply.status -eq 'OK')
             {
-                $Reply = $NSession.SessionState.ExecuteCommand2("/result/edit",$Options)
+                $Reply = $NSession.SessionState.ExecuteCommand2('/result/edit',$Options)
             }
             else
             {
-                throw "Session expired could not Re-Authenticate"
+                throw 'Session expired could not Re-Authenticate'
             }
         }
 
         if ($Reply)
         {
             $folder = $Reply | ConvertFrom-Json
-            if($folder.reply.status -eq "Ok")
+            if($folder.reply.status -eq 'Ok')
             {
-                Write-Verbose "Creation of folder was succesful."
+                Write-Verbose 'Creation of folder was succesful.'
             }
             else
             {
@@ -1706,12 +1706,12 @@ function Remove-NessusScanFolder
         [Parameter(Mandatory=$true,
                    Position=0,
                    ValueFromPipeline=$True,
-                   ParameterSetName = "Index")]
+                   ParameterSetName = 'Index')]
         [int32]
         $Index,
 
         [Parameter(Mandatory=$true,
-                   ParameterSetName = "Session",
+                   ParameterSetName = 'Session',
                    Position=0,
                    ValueFromPipeline=$True)]
         [Nessus.Server.Session]
@@ -1742,7 +1742,7 @@ function Remove-NessusScanFolder
 
         if (!($TagFound))
         {
-            throw "Folder tag id provided does not exists." 
+            throw 'Folder tag id provided does not exists.' 
         }
 
         # Random number for sequence request
@@ -1779,35 +1779,35 @@ function Remove-NessusScanFolder
 
         try
         {
-            $Reply = $NSession.SessionState.ExecuteCommand2("/tag/delete", $Options)
+            $Reply = $NSession.SessionState.ExecuteCommand2('/tag/delete', $Options)
         }
         catch [System.Management.Automation.MethodInvocationException]
         {
-            write-verbose "The session has expired, Re-authenticating"
+            write-verbose 'The session has expired, Re-authenticating'
             $reauth = $NSession.SessionManager.Login(
                 $NSession.SessionState.Username, 
                 $NSession.SessionState.Password, 
                 [ref]$true)
-            if ($reauth.reply.status -eq "OK")
+            if ($reauth.reply.status -eq 'OK')
             {
-                $Reply = $NSession.SessionState.ExecuteCommand2("/tag/delete",$Options)
+                $Reply = $NSession.SessionState.ExecuteCommand2('/tag/delete',$Options)
             }
             else
             {
-                throw "Session expired could not Re-Authenticate"
+                throw 'Session expired could not Re-Authenticate'
             }
         }
 
         if ($Reply)
         {
             $folder = $Reply | ConvertFrom-Json
-            if($folder.reply.status -eq "Ok")
+            if($folder.reply.status -eq 'Ok')
             {
-                Write-Verbose "Removal of folder was succesful."
+                Write-Verbose 'Removal of folder was succesful.'
             }
             else
             {
-                throw "Removal of folder failed."
+                throw 'Removal of folder failed.'
             }
         }
     }
@@ -1824,12 +1824,12 @@ function Rename-NessusScanFolder
         [Parameter(Mandatory=$true,
                    Position=0,
                    ValueFromPipeline=$True,
-                   ParameterSetName = "Index")]
+                   ParameterSetName = 'Index')]
         [int32]
         $Index,
 
         [Parameter(Mandatory=$true,
-                   ParameterSetName = "Session",
+                   ParameterSetName = 'Session',
                    Position=0,
                    ValueFromPipeline=$True)]
         [Nessus.Server.Session]
@@ -1866,7 +1866,7 @@ function Rename-NessusScanFolder
 
         if (!($TagFound))
         {
-            throw "Folder tag id provided does not exists." 
+            throw 'Folder tag id provided does not exists.' 
         }
 
         # Random number for sequence request
@@ -1904,35 +1904,35 @@ function Rename-NessusScanFolder
 
         try
         {
-            $Reply = $NSession.SessionState.ExecuteCommand2("/tag/edit", $Options)
+            $Reply = $NSession.SessionState.ExecuteCommand2('/tag/edit', $Options)
         }
         catch [System.Management.Automation.MethodInvocationException]
         {
-            write-verbose "The session has expired, Re-authenticating"
+            write-verbose 'The session has expired, Re-authenticating'
             $reauth = $NSession.SessionManager.Login(
                 $NSession.SessionState.Username, 
                 $NSession.SessionState.Password, 
                 [ref]$true)
-            if ($reauth.reply.status -eq "OK")
+            if ($reauth.reply.status -eq 'OK')
             {
-                $Reply = $NSession.SessionState.ExecuteCommand2("/tag/edit",$Options)
+                $Reply = $NSession.SessionState.ExecuteCommand2('/tag/edit',$Options)
             }
             else
             {
-                throw "Session expired could not Re-Authenticate"
+                throw 'Session expired could not Re-Authenticate'
             }
         }
 
         if ($Reply)
         {
             $folder = $Reply | ConvertFrom-Json
-            if($folder.reply.status -eq "Ok")
+            if($folder.reply.status -eq 'Ok')
             {
-                Write-Verbose "Removal of folder was succesful."
+                Write-Verbose 'Removal of folder was succesful.'
             }
             else
             {
-                throw "Removal of folder failed."
+                throw 'Removal of folder failed.'
             }
         }
     }
@@ -1949,12 +1949,12 @@ function Get-NessusMultiScannerInfo
         [Parameter(Mandatory=$true,
                    Position=0,
                    ValueFromPipeline=$True,
-                   ParameterSetName = "Index")]
+                   ParameterSetName = 'Index')]
         [int32]
         $Index,
 
         [Parameter(Mandatory=$true,
-                   ParameterSetName = "Session",
+                   ParameterSetName = 'Session',
                    Position=0,
                    ValueFromPipeline=$True)]
         [Nessus.Server.Session]
@@ -1996,22 +1996,22 @@ function Get-NessusMultiScannerInfo
 
         try
         {
-            $Reply = $NSession.SessionState.ExecuteCommand2("/multi-scanner/info", $Options)
+            $Reply = $NSession.SessionState.ExecuteCommand2('/multi-scanner/info', $Options)
         }
         catch [System.Management.Automation.MethodInvocationException]
         {
-            write-verbose "The session has expired, Re-authenticating"
+            write-verbose 'The session has expired, Re-authenticating'
             $reauth = $NSession.SessionManager.Login(
                 $NSession.SessionState.Username, 
                 $NSession.SessionState.Password, 
                 [ref]$true)
-            if ($reauth.reply.status -eq "OK")
+            if ($reauth.reply.status -eq 'OK')
             {
-                $Reply = $NSession.SessionState.ExecuteCommand2("/multi-scanner/info",$Options)
+                $Reply = $NSession.SessionState.ExecuteCommand2('/multi-scanner/info',$Options)
             }
             else
             {
-                throw "Session expired could not Re-Authenticate"
+                throw 'Session expired could not Re-Authenticate'
             }
         }
 

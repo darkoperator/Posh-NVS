@@ -1256,7 +1256,7 @@ function Get-NessusReportPluginAudit
         {
             try 
             {
-                $request_reply = $NSession.SessionManager.GetAuditTrail($ReportID, $host, $PluginID)
+                $request_reply = $NSession.SessionManager.GetAuditTrail($ReportID, $host, $Id)
             }
         
             Catch [Net.WebException] 
@@ -1268,7 +1268,7 @@ function Get-NessusReportPluginAudit
                         $ns.SessionState.Password, 
                         [ref]$true)
                     if ($reauth.reply.status -eq "OK"){
-                        $request_reply = $NSession.SessionManager.GetAuditTrail($ReportID, $host, $PluginID)
+                        $request_reply = $NSession.SessionManager.GetAuditTrail($ReportID, $host, $Id)
                     }
                     else{
                         throw "Session expired could not Re-Authenticate"

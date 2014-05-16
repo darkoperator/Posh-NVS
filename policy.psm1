@@ -2,7 +2,6 @@
 #     Nessus Policy Cmdlets     #
 #################################
 
-
 <#
 .Synopsis
    Shows the Policies available of a Nessus Server Session.
@@ -35,19 +34,19 @@ function Show-NessusPolicy
     param(
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Index")]
+        ParameterSetName = 'Index')]
         [int32[]]$Index,
 
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Session",
+        ParameterSetName = 'Session',
         ValueFromPipeline=$True)]
         [Nessus.Server.Session]$Session,
 
         [Parameter(Mandatory=$false,
         Position=1,
-        ParameterSetName = "Session")]
-        [Parameter(ParameterSetName = "Index")]
+        ParameterSetName = 'Session')]
+        [Parameter(ParameterSetName = 'Index')]
         [int]$PolicyID
 
     )
@@ -75,26 +74,26 @@ function Show-NessusPolicy
         }
         Catch [Net.WebException] {
            
-            write-verbose "The session has expired, Re-authenticating"
+            write-verbose 'The session has expired, Re-authenticating'
             $reauth = $ns.SessionManager.Login(
                 $ns.SessionState.Username, 
                 $ns.SessionState.Password, 
                 [ref]$true)
-            if ($reauth.reply.status -eq "OK"){
+            if ($reauth.reply.status -eq 'OK'){
                 $request_reply = $NSession.SessionManager.ListPolicies().reply
             }
             else{
-                throw "Session expired could not Re-Authenticate"
+                throw 'Session expired could not Re-Authenticate'
             }
             
         }
         # Check that we got the proper response
-        if ($request_reply.status -eq "OK"){
-            Write-Verbose -Message "We got an OK reply from the session."
+        if ($request_reply.status -eq 'OK'){
+            Write-Verbose -Message 'We got an OK reply from the session.'
 
             # Return all policies if none is specified by name
             if ($PolicyID -eq 0){
-                Write-Verbose "No individual policy was requested."
+                Write-Verbose 'No individual policy was requested.'
                 foreach ($policy in $request_reply.contents.policies.policy){
                     $policy_proprties = [ordered]@{
                         PolicyID = $policy.policyID
@@ -146,20 +145,20 @@ function Remove-NessusPolicy
     [CmdletBinding(DefaultParameterSetName = 'Index')]
     param(
         [Parameter(Mandatory=$true,
-        Position=0,
-        ParameterSetName = "Index")]
+            Position=0,
+            ParameterSetName = 'Index')]
         [int32[]]$Index,
 
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Session",
+        ParameterSetName = 'Session',
         ValueFromPipeline=$True)]
         [Nessus.Server.Session]$Session,
 
         [Parameter(Mandatory=$true,
-        Position=1,
-        ParameterSetName = "Session")]
-        [Parameter(ParameterSetName = "Index")]
+            Position=1,
+            ParameterSetName = 'Session')]
+        [Parameter(ParameterSetName = 'Index')]
         [int]$PolicyID
     )
     Begin {
@@ -168,7 +167,7 @@ function Remove-NessusPolicy
         # Options for XMLRPC request
         $ops = @{
             seq = $rand.Next()
-            "policy_id" = $PolicyID
+            'policy_id' = $PolicyID
         }
     }
     Process {
@@ -188,25 +187,25 @@ function Remove-NessusPolicy
         }
 
         Try {
-            $request_reply = $NSession.SessionState.ExecuteCommand("/policy/delete", $ops)
+            $request_reply = $NSession.SessionState.ExecuteCommand('/policy/delete', $ops)
         }
         Catch [Net.WebException] {
            
-            write-verbose "The session has expired, Re-authenticating"
+            write-verbose 'The session has expired, Re-authenticating'
             $reauth = $ns.SessionManager.Login(
                 $ns.SessionState.Username, 
                 $ns.SessionState.Password, 
                 [ref]$true)
-            if ($reauth.reply.status -eq "OK"){
-                $request_reply = $NSession.SessionState.ExecuteCommand("/policy/delete", $ops)
+            if ($reauth.reply.status -eq 'OK'){
+                $request_reply = $NSession.SessionState.ExecuteCommand('/policy/delete', $ops)
             }
             else{
-                throw "Session expired could not Re-Authenticate"
+                throw 'Session expired could not Re-Authenticate'
             }
             
         }
         # Check that we got the proper response
-        if ($request_reply.reply.status -eq "OK")
+        if ($request_reply.reply.status -eq 'OK')
         {
             Write-Verbose "Policy with ID $($PolicyID) was successfully removed"
             $true
@@ -302,19 +301,19 @@ function Get-NessusPolicyXML
     param(
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Index")]
+        ParameterSetName = 'Index')]
         [int32[]]$Index,
 
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Session",
+        ParameterSetName = 'Session',
         ValueFromPipeline=$True)]
         [Nessus.Server.Session]$Session,
 
         [Parameter(Mandatory=$true,
         Position=1,
-        ParameterSetName = "Session")]
-        [Parameter(ParameterSetName = "Index")]
+        ParameterSetName = 'Session')]
+        [Parameter(ParameterSetName = 'Index')]
         [int]$PolicyID
     )
     Begin {
@@ -323,7 +322,7 @@ function Get-NessusPolicyXML
         # Options for XMLRPC request
         $ops = @{
             seq = $rand.Next()
-            "policy_id" = $PolicyID
+            'policy_id' = $PolicyID
         }
     }
     Process {
@@ -343,20 +342,20 @@ function Get-NessusPolicyXML
         }
 
         Try {
-            $request_reply = $NSession.SessionState.ExecuteCommand("/policy/download", $ops)
+            $request_reply = $NSession.SessionState.ExecuteCommand('/policy/download', $ops)
         }
         Catch [Net.WebException] {
            
-            write-verbose "The session has expired, Re-authenticating"
+            write-verbose 'The session has expired, Re-authenticating'
             $reauth = $ns.SessionManager.Login(
                 $ns.SessionState.Username, 
                 $ns.SessionState.Password, 
                 [ref]$true)
-            if ($reauth.reply.status -eq "OK"){
-                $request_reply = $NSession.SessionState.ExecuteCommand("/policy/download", $ops)
+            if ($reauth.reply.status -eq 'OK'){
+                $request_reply = $NSession.SessionState.ExecuteCommand('/policy/download', $ops)
             }
             else{
-                throw "Session expired could not Re-Authenticate"
+                throw 'Session expired could not Re-Authenticate'
             }
             
         }
@@ -380,19 +379,19 @@ function Get-NessusPolicyPluginFamilies
     param(
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Index")]
+        ParameterSetName = 'Index')]
         [int32[]]$Index,
 
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Session",
+        ParameterSetName = 'Session',
         ValueFromPipeline=$True)]
         [Nessus.Server.Session]$Session,
 
         [Parameter(Mandatory=$true,
         Position=1,
-        ParameterSetName = "Session")]
-        [Parameter(ParameterSetName = "Index")]
+        ParameterSetName = 'Session')]
+        [Parameter(ParameterSetName = 'Index')]
         [int]$PolicyID
     )
     Begin {
@@ -401,7 +400,7 @@ function Get-NessusPolicyPluginFamilies
         # Options for XMLRPC request
         $ops = @{
             seq = $rand.Next()
-            "policy_id" = $PolicyID
+            'policy_id' = $PolicyID
         }
     }
     Process {
@@ -422,21 +421,21 @@ function Get-NessusPolicyPluginFamilies
 
         Try {
             #add token to options
-            $ops.Add("token",$NSession.token)
-            $request_reply = $NSession.SessionState.ExecuteCommand("/policy/list/families", $ops)
+            $ops.Add('token',$NSession.token)
+            $request_reply = $NSession.SessionState.ExecuteCommand('/policy/list/families', $ops)
         }
         Catch [Net.WebException] {
            
-            write-verbose "The session has expired, Re-authenticating"
+            write-verbose 'The session has expired, Re-authenticating'
             $reauth = $ns.SessionManager.Login(
                 $ns.SessionState.Username, 
                 $ns.SessionState.Password, 
                 [ref]$true)
-            if ($reauth.reply.status -eq "OK"){
-                $request_reply = $NSession.SessionState.ExecuteCommand("/policy/list/families", $ops)
+            if ($reauth.reply.status -eq 'OK'){
+                $request_reply = $NSession.SessionState.ExecuteCommand('/policy/list/families', $ops)
             }
             else{
-                throw "Session expired could not Re-Authenticate"
+                throw 'Session expired could not Re-Authenticate'
             }
             
         }
@@ -464,12 +463,12 @@ function Publish-NessusPolicy
     param(
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Index")]
+        ParameterSetName = 'Index')]
         [int32[]]$Index,
 
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Session",
+        ParameterSetName = 'Session',
         ValueFromPipeline=$True)]
         [Nessus.Server.Session]$Session,
 
@@ -512,32 +511,32 @@ function Publish-NessusPolicy
 
         Try {
             #add token to options
-            $ops.Add("token",$NSession.token)
-            $request_reply = $NSession.SessionState.upload("/file/upload", $FullPath)
+            $ops.Add('token',$NSession.token)
+            $request_reply = $NSession.SessionState.upload('/file/upload', $FullPath)
         }
         Catch [Net.WebException] {
            
-            write-verbose "The session has expired, Re-authenticating"
+            write-verbose 'The session has expired, Re-authenticating'
             $reauth = $ns.SessionManager.Login(
                 $ns.SessionState.Username, 
                 $ns.SessionState.Password, 
                 [ref]$true)
-            if ($reauth.reply.status -eq "OK")
+            if ($reauth.reply.status -eq 'OK')
             {
-                $request_reply = $NSession.SessionState.upload("/file/upload", $FullPath)
+                $request_reply = $NSession.SessionState.upload('/file/upload', $FullPath)
             }
             else{
-                throw "Session expired could not Re-Authenticate"
+                throw 'Session expired could not Re-Authenticate'
             }
 
             
             
         }
             
-        if ($request_reply.reply.status -eq "OK")
+        if ($request_reply.reply.status -eq 'OK')
         {
-            $import_reply = $NSession.SessionState.executecommand("/file/policy/import",$ops)
-            if ($import_reply.reply.status -eq "OK")
+            $import_reply = $NSession.SessionState.executecommand('/file/policy/import',$ops)
+            if ($import_reply.reply.status -eq 'OK')
             {
                 return $true
             }
@@ -556,35 +555,35 @@ function Update-NessusPolicyGeneralSettings
     param(
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Index")]
+        ParameterSetName = 'Index')]
         [int32[]]$Index,
 
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Session",
+        ParameterSetName = 'Session',
         ValueFromPipeline=$True)]
         [Nessus.Server.Session]$Session,
 
         [Parameter(Mandatory=$true,
         Position=1,
-        ParameterSetName = "Session")]
-        [Parameter(ParameterSetName = "Index")]
+        ParameterSetName = 'Session')]
+        [Parameter(ParameterSetName = 'Index')]
         [int]$PolicyID,
 
         [Parameter(Mandatory=$false)]
-        [Parameter(ParameterSetName = "Index")]
-        [Parameter(ParameterSetName = "Session")]
+        [Parameter(ParameterSetName = 'Index')]
+        [Parameter(ParameterSetName = 'Session')]
         [string]$Name,
 
         [Parameter(Mandatory=$false)]
-        [Parameter(ParameterSetName = "Index")]
-        [Parameter(ParameterSetName = "Session")]
+        [Parameter(ParameterSetName = 'Index')]
+        [Parameter(ParameterSetName = 'Session')]
         [string]$Description,
 
         [Parameter(Mandatory=$false)]
-        [Parameter(ParameterSetName = "Index")]
-        [Parameter(ParameterSetName = "Session")]
-        [ValidateSet("Private","Shared")]
+        [Parameter(ParameterSetName = 'Index')]
+        [Parameter(ParameterSetName = 'Session')]
+        [ValidateSet('Private','Shared')]
         [string]$Visibility
     )
     Begin {
@@ -593,24 +592,24 @@ function Update-NessusPolicyGeneralSettings
         # Options for XMLRPC request
         $ops = @{
             seq = $rand.Next()
-            "policy_id" = $PolicyID
+            'policy_id' = $PolicyID
         }
         if ($Name)
         {
-            $ops.add("general.Basic.0", $Name.Replace(" ",'+'))
+            $ops.add('general.Basic.0', $Name.Replace(' ','+'))
         }
 
         if ($Description)
         {
-            $ops.add("general.Basic.2", $Description)
+            $ops.add('general.Basic.2', $Description)
         }
 
         if ($Visibility)
         {
             switch ($Visibility)
             {
-                "Private" {$ops.add("general.Basic.1", "private")}
-                "Shared"  {$ops.add("general.Basic.1", "shared")}
+                'Private' {$ops.add('general.Basic.1', 'private')}
+                'Shared'  {$ops.add('general.Basic.1', 'shared')}
             }
         }
     }
@@ -632,22 +631,22 @@ function Update-NessusPolicyGeneralSettings
 
         Try {
             #add token to options
-            $ops.Add("token",$NSession.token)
-            $request_reply = $NSession.SessionState.ExecuteCommand("/policy/update", $ops)
+            $ops.Add('token',$NSession.token)
+            $request_reply = $NSession.SessionState.ExecuteCommand('/policy/update', $ops)
         }
         Catch [Net.WebException] {
            
-            write-verbose "The session has expired, Re-authenticating"
+            write-verbose 'The session has expired, Re-authenticating'
             $reauth = $ns.SessionManager.Login(
                 $ns.SessionState.Username, 
                 $ns.SessionState.Password, 
                 [ref]$true)
-            if ($reauth.reply.status -eq "OK")
+            if ($reauth.reply.status -eq 'OK')
             {
-                $request_reply = $NSession.SessionState.ExecuteCommand("/policy/update", $ops)
+                $request_reply = $NSession.SessionState.ExecuteCommand('/policy/update', $ops)
             }
             else{
-                throw "Session expired could not Re-Authenticate"
+                throw 'Session expired could not Re-Authenticate'
             }
             
         }
@@ -674,89 +673,90 @@ function Update-NessusPolicyFamily
     param(
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Index")]
+        ParameterSetName = 'Index')]
         [int32[]]$Index,
 
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Session",
+        ParameterSetName = 'Session',
         ValueFromPipeline=$True)]
         [Nessus.Server.Session]$Session,
 
         [Parameter(Mandatory=$true,
         Position=1,
-        ParameterSetName = "Session")]
-        [Parameter(ParameterSetName = "Index")]
+        ParameterSetName = 'Session')]
+        [Parameter(ParameterSetName = 'Index')]
         [int]$PolicyID,
 
         [Parameter(Mandatory=$false)]
-        [Parameter(ParameterSetName = "Index")]
-        [Parameter(ParameterSetName = "Session")]
-        [Parameter(ParameterSetName = "Individual")]
+        [Parameter(ParameterSetName = 'Index')]
+        [Parameter(ParameterSetName = 'Session')]
+        [Parameter(ParameterSetName = 'Individual')]
         [validateset('AIX Local Security Checks',
-        'AIX_Local_Security_Checks',
-        'Backdoors',
-        'CGI_abuses',
-        'CGI_abuses_XSS',
-        'CISCO',
-        'CentOS_Local_Security_Checks',
-        'DNS',
-        'Databases',
-        'Debian_Local_Security_Checks',
-        'Default_Unix_Accounts',
-        'Denial_of_Service',
-        'FTP',
-        'Fedora_Local_Security_Checks',
-        'Firewalls',
-        'FreeBSD_Local_Security_Checks',
-        'Gain_a_shell_remotely',
-        'General',
-        'Gentoo_Local_Security_Checks',
-        'HP-UX_Local_Security_Checks',
-        'Junos_Local_Security_Checks',
-        'MacOS_X_Local_Security_Checks',
-        'Mandriva_Local_Security_Checks',
-        'Misc.',
-        'Mobile_Devices',
-        'Netware',
-        'Peer-To-Peer_File_Sharing',
-        'Policy_Compliance',
-        'RPC',
-        'Red_Hat_Local_Security_Checks',
-        'SCADA',
-        'SMTP_problems',
-        'SNMP',
-        'Scientific_Linux_Local_Security_Checks',
-        'Service_detection',
-        'Settings',
-        'Slackware_Local_Security_Checks',
-        'Solaris_Local_Security_Checks',
-        'SuSE_Local_Security_Checks',
-        'Ubuntu_Local_Security_Checks',
-        'VMware_ESX_Local_Security_Checks',
-        'Web_Servers',
-        'Windows',
-        'Windows_Microsoft_Bulletins',
-        'Windows_User_management')]
+                     'Amazon_Linux_Local_Security_Checks',
+                     'AIX_Local_Security_Checks',
+                     'Backdoors',
+                     'CGI_abuses',
+                     'CGI_abuses_XSS',
+                     'CISCO',
+                     'CentOS_Local_Security_Checks',
+                     'DNS',
+                     'Databases',
+                     'Debian_Local_Security_Checks',
+                     'Default_Unix_Accounts',
+                     'Denial_of_Service',
+                     'FTP',
+                     'Fedora_Local_Security_Checks',
+                     'Firewalls',
+                     'FreeBSD_Local_Security_Checks',
+                     'Gain_a_shell_remotely',
+                     'General',
+                     'Gentoo_Local_Security_Checks',
+                     'HP-UX_Local_Security_Checks',
+                     'Junos_Local_Security_Checks',
+                     'MacOS_X_Local_Security_Checks',
+                     'Mandriva_Local_Security_Checks',
+                     'Misc.',
+                     'Mobile_Devices',
+                     'Netware',
+                     'Peer-To-Peer_File_Sharing',
+                     'Policy_Compliance',
+                     'RPC',
+                     'Red_Hat_Local_Security_Checks',
+                     'SCADA',
+                     'SMTP_problems',
+                     'SNMP',
+                     'Scientific_Linux_Local_Security_Checks',
+                     'Service_detection',
+                     'Settings',
+                     'Slackware_Local_Security_Checks',
+                     'Solaris_Local_Security_Checks',
+                     'SuSE_Local_Security_Checks',
+                     'Ubuntu_Local_Security_Checks',
+                     'VMware_ESX_Local_Security_Checks',
+                     'Web_Servers',
+                     'Windows',
+                     'Windows_Microsoft_Bulletins',
+                     'Windows_User_management')]
         [string]$Name,
 
         [Parameter(Mandatory=$false)]
-        [Parameter(ParameterSetName = "Index")]
-        [Parameter(ParameterSetName = "Session")]
-        [Parameter(ParameterSetName = "Individual")]
-        [ValidateSet("Enabled","Disabled")]
+        [Parameter(ParameterSetName = 'Index')]
+        [Parameter(ParameterSetName = 'Session')]
+        [Parameter(ParameterSetName = 'Individual')]
+        [ValidateSet('Enabled','Disabled')]
         [string]$Status,
 
         [Parameter(Mandatory=$false)]
-        [Parameter(ParameterSetName = "Index")]
-        [Parameter(ParameterSetName = "Session")]
-        [Parameter(ParameterSetName = "enableallplugs")]
+        [Parameter(ParameterSetName = 'Index')]
+        [Parameter(ParameterSetName = 'Session')]
+        [Parameter(ParameterSetName = 'enableallplugs')]
         [Switch]$EnableAll,
 
         [Parameter(Mandatory=$false)]
-        [Parameter(ParameterSetName = "Index")]
-        [Parameter(ParameterSetName = "Session")]
-        [Parameter(ParameterSetName = "disableallplugs")]
+        [Parameter(ParameterSetName = 'Index')]
+        [Parameter(ParameterSetName = 'Session')]
+        [Parameter(ParameterSetName = 'disableallplugs')]
         [Switch]$DisableAll
     )
     Begin 
@@ -783,6 +783,7 @@ function Update-NessusPolicyFamily
         # Sadly I have to hardcode them, Families and IDs for 4/15/13
         $FamilyHash = @{
             'AIX_Local_Security_Checks'='9aedd4dcccf909d4912a2f8113cffa43'
+            'Amazon_Linux_Local_Security_Checks'= 'df5cd238ab6ba820ee0b13c493f1bcd6'
             'Backdoors'='6b480fc3bed84db55fce1e140c7b6b99'
             'CGI_abuses'='07948b8ff59e8dda0b01012f70f00327'
             'CGI_abuses_:_XSS'='61e021375865ee20d8f9e2562510b86f'
@@ -833,63 +834,63 @@ function Update-NessusPolicyFamily
         # Options for XMLRPC request
         $ops = @{
             seq = $rand.Next()
-            "policy_id" = $PolicyID
+            'policy_id' = $PolicyID
             json = 1
         }
         
-        if (($Name -ne "") -and ($Status))
+        if (($Name -ne '') -and ($Status))
         {
             Write-Verbose "Updating Family $Name to be $dtatus"
             
             $famid = $FamilyHash."$Name"
-            $famkey = "family." + $famid
+            $famkey = 'family.' + $famid
             Write-Verbose "The Family ID is $famid"
             switch ($Status)
             {
-                "Enabled"  {$ops.add($famkey, "enabled")}
-                "Disabled" {$ops.add($famkey, "disabled")}
+                'Enabled'  {$ops.add($famkey, 'enabled')}
+                'Disabled' {$ops.add($famkey, 'disabled')}
             }
         }
 
         if ($EnableAll)
         {
-            Write-Verbose "Enabling all families"
+            Write-Verbose 'Enabling all families'
             $FamilyHash.GetEnumerator() | foreach {
                 $famid = $FamilyHash."$($_.name)"
-                $famkey = "family." + $famid
-                $ops.add($famkey, "enabled")
+                $famkey = 'family.' + $famid
+                $ops.add($famkey, 'enabled')
             }
 
         }
 
         if ($DisableAll)
         {
-            Write-Verbose "Enabling all families"
+            Write-Verbose 'Enabling all families'
             $FamilyHash.GetEnumerator() | foreach {
                 $famid = $FamilyHash."$($_.name)"
-                $famkey = "family." + $famid
-                $ops.add($famkey, "disabled")
+                $famkey = 'family.' + $famid
+                $ops.add($famkey, 'disabled')
             }
 
         }
         Try {
             #add token to options
-            $ops.Add("token",$NSession.token)
-            $request_reply = $NSession.SessionState.ExecuteCommand("/policy/update", $ops)
+            $ops.Add('token',$NSession.token)
+            $request_reply = $NSession.SessionState.ExecuteCommand('/policy/update', $ops)
         }
         Catch [Net.WebException] {
            
-            write-verbose "The session has expired, Re-authenticating"
+            write-verbose 'The session has expired, Re-authenticating'
             $reauth = $ns.SessionManager.Login(
                 $ns.SessionState.Username, 
                 $ns.SessionState.Password, 
                 [ref]$true)
-            if ($reauth.reply.status -eq "OK")
+            if ($reauth.reply.status -eq 'OK')
             {
-                $request_reply = $NSession.SessionState.ExecuteCommand("/policy/update", $ops)
+                $request_reply = $NSession.SessionState.ExecuteCommand('/policy/update', $ops)
             }
             else{
-                throw "Session expired could not Re-Authenticate"
+                throw 'Session expired could not Re-Authenticate'
             }
             
         }
@@ -915,29 +916,29 @@ function New-NessusPolicy
     param(
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Index")]
+        ParameterSetName = 'Index')]
         [int32[]]$Index,
 
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Session",
+        ParameterSetName = 'Session',
         ValueFromPipeline=$True)]
         [Nessus.Server.Session]$Session,
 
         [Parameter(Mandatory=$false)]
-        [Parameter(ParameterSetName = "Index")]
-        [Parameter(ParameterSetName = "Session")]
+        [Parameter(ParameterSetName = 'Index')]
+        [Parameter(ParameterSetName = 'Session')]
         [string]$Name,
 
         [Parameter(Mandatory=$false)]
-        [Parameter(ParameterSetName = "Index")]
-        [Parameter(ParameterSetName = "Session")]
+        [Parameter(ParameterSetName = 'Index')]
+        [Parameter(ParameterSetName = 'Session')]
         [string]$Description,
 
         [Parameter(Mandatory=$false)]
-        [Parameter(ParameterSetName = "Index")]
-        [Parameter(ParameterSetName = "Session")]
-        [ValidateSet("Private","Shared")]
+        [Parameter(ParameterSetName = 'Index')]
+        [Parameter(ParameterSetName = 'Session')]
+        [ValidateSet('Private','Shared')]
         [string]$Visibility
     )
     Begin {
@@ -946,24 +947,24 @@ function New-NessusPolicy
         # Options for XMLRPC request
         $ops = @{
             seq = $rand.Next()
-            "policy_id" = 0
+            'policy_id' = 0
         }
         if ($Name)
         {
-            $ops.add("general.Basic.0", $Name.Replace(" ",'+'))
+            $ops.add('general.Basic.0', $Name.Replace(' ','+'))
         }
 
         if ($Description)
         {
-            $ops.add("general.Basic.2", $Description)
+            $ops.add('general.Basic.2', $Description)
         }
 
         if ($Visibility)
         {
             switch ($Visibility)
             {
-                "Private" {$ops.add("general.Basic.1", "private")}
-                "Shared"  {$ops.add("general.Basic.1", "shared")}
+                'Private' {$ops.add('general.Basic.1', 'private')}
+                'Shared'  {$ops.add('general.Basic.1', 'shared')}
             }
         }
     }
@@ -985,22 +986,22 @@ function New-NessusPolicy
 
         Try {
             #add token to options
-            $ops.Add("token",$NSession.token)
-            $request_reply = $NSession.SessionState.ExecuteCommand("/policy/update", $ops)
+            $ops.Add('token',$NSession.token)
+            $request_reply = $NSession.SessionState.ExecuteCommand('/policy/update', $ops)
         }
         Catch [Net.WebException] {
            
-            write-verbose "The session has expired, Re-authenticating"
+            write-verbose 'The session has expired, Re-authenticating'
             $reauth = $ns.SessionManager.Login(
                 $ns.SessionState.Username, 
                 $ns.SessionState.Password, 
                 [ref]$true)
-            if ($reauth.reply.status -eq "OK")
+            if ($reauth.reply.status -eq 'OK')
             {
-                $request_reply = $NSession.SessionState.ExecuteCommand("/policy/update", $ops)
+                $request_reply = $NSession.SessionState.ExecuteCommand('/policy/update', $ops)
             }
             else{
-                throw "Session expired could not Re-Authenticate"
+                throw 'Session expired could not Re-Authenticate'
             }
             
         }
@@ -1043,19 +1044,19 @@ function Copy-NessusPolicy
     param(
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Index")]
+        ParameterSetName = 'Index')]
         [int32[]]$Index,
 
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Session",
+        ParameterSetName = 'Session',
         ValueFromPipeline=$True)]
         [Nessus.Server.Session]$Session,
 
         [Parameter(Mandatory=$true,
         Position=1,
-        ParameterSetName = "Session")]
-        [Parameter(ParameterSetName = "Index")]
+        ParameterSetName = 'Session')]
+        [Parameter(ParameterSetName = 'Index')]
         [int]$PolicyID
     )
     Begin {
@@ -1064,7 +1065,7 @@ function Copy-NessusPolicy
         # Options for XMLRPC request
         $ops = @{
             seq = $rand.Next()
-            "policy_id" = $PolicyID
+            'policy_id' = $PolicyID
         }
     }
     Process {
@@ -1084,25 +1085,25 @@ function Copy-NessusPolicy
         }
 
         Try {
-            $request_reply = $NSession.SessionState.ExecuteCommand("/policy/copy", $ops)
+            $request_reply = $NSession.SessionState.ExecuteCommand('/policy/copy', $ops)
         }
         Catch [Net.WebException] {
            
-            write-verbose "The session has expired, Re-authenticating"
+            write-verbose 'The session has expired, Re-authenticating'
             $reauth = $ns.SessionManager.Login(
                 $ns.SessionState.Username, 
                 $ns.SessionState.Password, 
                 [ref]$true)
-            if ($reauth.reply.status -eq "OK"){
-                $request_reply = $NSession.SessionState.ExecuteCommand("/policy/copy", $ops)
+            if ($reauth.reply.status -eq 'OK'){
+                $request_reply = $NSession.SessionState.ExecuteCommand('/policy/copy', $ops)
             }
             else{
-                throw "Session expired could not Re-Authenticate"
+                throw 'Session expired could not Re-Authenticate'
             }
             
         }
         # Check that we got the proper response
-        if ($request_reply.reply.status -eq "OK")
+        if ($request_reply.reply.status -eq 'OK')
         {
             $new_pol = $request_reply.reply.contents.policy
             $policy_proprties = [ordered]@{
@@ -1123,28 +1124,26 @@ function Copy-NessusPolicy
 }
 
 
-
-
-function Set-NessusPolicySSHCredential
+function Set-NessusPolicySSHCredentialold
 {
     [CmdletBinding(DefaultParameterSetName = 'Index')]
     param(
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Index")]
+        ParameterSetName = 'Index')]
         [int32[]]$Index,
 
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Session",
+        ParameterSetName = 'Session',
         ValueFromPipeline=$True)]
         [Nessus.Server.Session]$Session,
 
         # Numeric ID of the Policy to update.
         [Parameter(Mandatory=$false,
         Position=1,
-        ParameterSetName = "Session")]
-        [Parameter(ParameterSetName = "Index")]
+        ParameterSetName = 'Session')]
+        [Parameter(ParameterSetName = 'Index')]
         [int]$PolicyID,
 
         # A index value from 0 to 5 for the credentials. Nessus can have up to 4 credentials to try.
@@ -1159,7 +1158,7 @@ function Set-NessusPolicySSHCredential
         [Management.Automation.PSCredential]$Credential,
 
         [Parameter(Mandatory=$false,
-        ParameterSetName = "Index")]
+        ParameterSetName = 'Index')]
         [int32]$SSHPort = 22,
 
         # Credential object with credentials that will be used for elevation.
@@ -1168,7 +1167,7 @@ function Set-NessusPolicySSHCredential
 
         [Parameter(Mandatory=$false,
         Position=6)]
-        [ValidateSet("su", "sudo", "su+sudo", "pbrun", "Cisco_Enable", "dzdo", "Nothing")]
+        [ValidateSet('su', 'sudo', 'su+sudo', 'pbrun', 'Cisco_Enable', 'dzdo', 'Nothing')]
         [String]$ElevationMethod
 
     )
@@ -1187,45 +1186,45 @@ function Set-NessusPolicySSHCredential
         switch ($UserIndex)
         {
             0 {
-                $opt.add("credentials.SSH+settings.306", $Credential.GetNetworkCredential().UserName)
-                $opt.add("credentials.SSH+settings.307", $Credential.GetNetworkCredential().Password)
+                $opt.add('credentials.SSH+settings.306', $Credential.GetNetworkCredential().UserName)
+                $opt.add('credentials.SSH+settings.307', $Credential.GetNetworkCredential().Password)
               }
 
             1 {
-                $opt.add("credentials.SSH+settings.319", $Credential.GetNetworkCredential().UserName)
-                $opt.add("credentials.SSH+settings.320", $Credential.GetNetworkCredential().Password)
+                $opt.add('credentials.SSH+settings.319', $Credential.GetNetworkCredential().UserName)
+                $opt.add('credentials.SSH+settings.320', $Credential.GetNetworkCredential().Password)
             }
 
             2 {
-                $opt.add("credentials.SSH+settings.321", $Credential.GetNetworkCredential().UserName)
-                $opt.add("credentials.SSH+settings.322", $Credential.GetNetworkCredential().Password)
+                $opt.add('credentials.SSH+settings.321', $Credential.GetNetworkCredential().UserName)
+                $opt.add('credentials.SSH+settings.322', $Credential.GetNetworkCredential().Password)
             }
 
             3 {
-                $opt.add("credentials.SSH+settings.323", $Credential.GetNetworkCredential().UserName)
-                $opt.add("credentials.SSH+settings.324", $Credential.GetNetworkCredential().Password)
+                $opt.add('credentials.SSH+settings.323', $Credential.GetNetworkCredential().UserName)
+                $opt.add('credentials.SSH+settings.324', $Credential.GetNetworkCredential().Password)
             }
 
             4 {
-                $opt.add("credentials.SSH+settings.325", $Credential.GetNetworkCredential().UserName)
-                $opt.add("credentials.SSH+settings.326", $Credential.GetNetworkCredential().Password)
+                $opt.add('credentials.SSH+settings.325', $Credential.GetNetworkCredential().UserName)
+                $opt.add('credentials.SSH+settings.326', $Credential.GetNetworkCredential().Password)
             }
 
             5 {
-                $opt.add("credentials.SSH+settings.327", $Credential.GetNetworkCredential().UserName)
-                $opt.add("credentials.SSH+settings.328", $Credential.GetNetworkCredential().Password)
+                $opt.add('credentials.SSH+settings.327', $Credential.GetNetworkCredential().UserName)
+                $opt.add('credentials.SSH+settings.328', $Credential.GetNetworkCredential().Password)
             }
         }
 
         if ($SSHPort)
         {
-            $opt.add("credentials.SSH+settings.317", $SSHPort)
+            $opt.add('credentials.SSH+settings.317', $SSHPort)
         }
 
         if ($ElevationCredential)
         {
-            $opt.add("credentials.SSH+settings.314", $ElevationCredential.GetNetworkCredential().UserName)
-            $opt.add("credentials.SSH+settings.315", $ElevationCredential.GetNetworkCredential().Password)
+            $opt.add('credentials.SSH+settings.314', $ElevationCredential.GetNetworkCredential().UserName)
+            $opt.add('credentials.SSH+settings.315', $ElevationCredential.GetNetworkCredential().Password)
         }
 
         if ($ElevationMethod)
@@ -1233,21 +1232,29 @@ function Set-NessusPolicySSHCredential
             switch ($ElevationMethod)
             {
 
-                "su"{$opt.add("credentials.SSH+settings.311", "su")}
+                'su'  
+                {$opt.add('credentials.SSH+settings.311', 'su')}
 
-                "sudo"{$opt.add("credentials.SSH+settings.311", "sudo")}
+                'sudo'
+                {$opt.add('credentials.SSH+settings.311', 'sudo')}
 
-                "su+sudo"{$opt.add("credentials.SSH+settings.311", "su%2Bsudo")}
+                'su+sudo'
+                {$opt.add('credentials.SSH+settings.311', 'su%2Bsudo')}
 
-                "pbrun"{$opt.add("credentials.SSH+settings.311", "pbrun")}
+                'pbrun'
+                {$opt.add('credentials.SSH+settings.311', 'pbrun')}
 
-                "Cisco_Enable"{$opt.add("credentials.SSH+settings.314", "Cisco+'enable'")}
+                'Cisco_Enable'
+                {$opt.add('credentials.SSH+settings.314', "Cisco+'enable'")}
 
-                "dzdo"{$opt.add("credentials.SSH+settings.314", "dzdo")}
+                'dzdo'
+                {$opt.add('credentials.SSH+settings.314', 'dzdo')}
 
-                "Nothing"{$opt.add("credentials.SSH+settings.314", "Nothing")}
+                'Nothing'
+                {$opt.add('credentials.SSH+settings.314', 'Nothing')}
 
-                default {$opt.add("credentials.SSH+settings.314", "Nothing")}
+                default 
+                {$opt.add('credentials.SSH+settings.314', 'Nothing')}
             }
         }
     }
@@ -1271,36 +1278,36 @@ function Set-NessusPolicySSHCredential
         try 
         {
             Write-Verbose "Setting credentia on policy $($PolicyID)"
-            $request_reply = $NSession.SessionState.ExecuteCommand("/policy/update", $opt)
+            $request_reply = $NSession.SessionState.ExecuteCommand('/policy/update', $opt)
             
         }
         Catch [Net.WebException] 
         {
-           if ($_.exception -match ".*403.*") 
+           if ($_.exception -match '.*403.*') 
            {
-                write-verbose "The session has expired, Re-authenticating"
+                write-verbose 'The session has expired, Re-authenticating'
                 $reauth = $ns.SessionManager.Login(
                     $ns.SessionState.Username, 
                     $ns.SessionState.Password, 
                     [ref]$true)
-                if ($reauth.reply.status -eq "OK")
+                if ($reauth.reply.status -eq 'OK')
                 {
-                    $request_reply = $NSession.SessionState.ExecuteCommand("/policy/update", $opt)
+                    $request_reply = $NSession.SessionState.ExecuteCommand('/policy/update', $opt)
                 }
                 else
                 {
-                    throw "Session expired could not Re-Authenticate"
+                    throw 'Session expired could not Re-Authenticate'
                 }
             }
-            elseif ($_.exception -match ".*404.*") 
+            elseif ($_.exception -match '.*404.*') 
             {
-                throw "A policy with that ID was not found on Nessus Server"
+                throw 'A policy with that ID was not found on Nessus Server'
             } 
         }
         
-        if ($request_reply.reply.status -eq "OK")
+        if ($request_reply.reply.status -eq 'OK')
         {
-            Write-Verbose "We got OK on request." 
+            Write-Verbose 'We got OK on request.' 
             $true
         }
         else
@@ -1333,12 +1340,12 @@ function Enable-NessusPolicyPlugin
         [Parameter(Mandatory=$true,
                    Position=0,
                    ValueFromPipeline=$True,
-                   ParameterSetName = "Index")]
+                   ParameterSetName = 'Index')]
         [int32]
         $Index,
 
         [Parameter(Mandatory=$true,
-                   ParameterSetName = "Session",
+                   ParameterSetName = 'Session',
                    Position=0,
                    ValueFromPipeline=$True)]
         [Nessus.Server.Session]
@@ -1346,18 +1353,18 @@ function Enable-NessusPolicyPlugin
 
         [Parameter(Mandatory=$true,
                    Position=1,
-                   ParameterSetName = "Session")]
+                   ParameterSetName = 'Session')]
         [Parameter(Mandatory=$true,
                    Position=2,
-                   ParameterSetName = "Index")]
+                   ParameterSetName = 'Index')]
         [int]$PolicyID,
 
         [Parameter(Mandatory=$true,
                    Position=2,
-                   ParameterSetName = "Session")]
+                   ParameterSetName = 'Session')]
         [Parameter(Mandatory=$true,
                    Position=2,
-                   ParameterSetName = "Index")]
+                   ParameterSetName = 'Index')]
         [int[]]$PluginID
     )
     Begin
@@ -1405,22 +1412,22 @@ function Enable-NessusPolicyPlugin
             $SearchOptions['filter.0.value'] = $plugin
             try
             {
-                $Reply = $NSession.SessionState.ExecuteCommand2("/policy/list/families", $SearchOptions)
+                $Reply = $NSession.SessionState.ExecuteCommand2('/policy/list/families', $SearchOptions)
             }
             catch [System.Management.Automation.MethodInvocationException]
             {
-                write-verbose "The session has expired, Re-authenticating"
+                write-verbose 'The session has expired, Re-authenticating'
                 $reauth = $NSession.SessionManager.Login(
                     $NSession.SessionState.Username, 
                     $NSession.SessionState.Password, 
                     [ref]$true)
-                if ($reauth.reply.status -eq "OK")
+                if ($reauth.reply.status -eq 'OK')
                 {
-                    $Reply = $NSession.SessionState.ExecuteCommand2("/policy/list/families",$SearchOptions)
+                    $Reply = $NSession.SessionState.ExecuteCommand2('/policy/list/families',$SearchOptions)
                 }
                 else
                 {
-                    throw "Session expired could not Re-Authenticate"
+                    throw 'Session expired could not Re-Authenticate'
                 }
             }
 
@@ -1429,7 +1436,7 @@ function Enable-NessusPolicyPlugin
                 $reply = ($Reply | ConvertFrom-Json).reply.contents.policyfamilies.family
                 if ($reply)
                 {
-                    if ($Reply.status -ne "enabled")
+                    if ($Reply.status -ne 'enabled')
                     {
                         $EnableOps = @{
                             seq = $rand.Next()
@@ -1438,10 +1445,10 @@ function Enable-NessusPolicyPlugin
                         }
                         $ParamName = "family.$($Reply.id).plugins.$($plugin)"
 
-                        $EnableOps.Add($ParamName,"enabled")
+                        $EnableOps.Add($ParamName,'enabled')
 
                         Write-Verbose "Enabling plugin $($plugin)"
-                        $EnableReply = $NSession.SessionState.ExecuteCommand2("/policy/update",$EnableOps)
+                        $EnableReply = $NSession.SessionState.ExecuteCommand2('/policy/update',$EnableOps)
 
                     }
                     else
@@ -1460,6 +1467,7 @@ function Enable-NessusPolicyPlugin
     {
     }
 }
+
 
 <#
 .Synopsis
@@ -1480,12 +1488,12 @@ function Disable-NessusPolicyPlugin
         [Parameter(Mandatory=$true,
                    Position=0,
                    ValueFromPipeline=$True,
-                   ParameterSetName = "Index")]
+                   ParameterSetName = 'Index')]
         [int32]
         $Index,
 
         [Parameter(Mandatory=$true,
-                   ParameterSetName = "Session",
+                   ParameterSetName = 'Session',
                    Position=0,
                    ValueFromPipeline=$True)]
         [Nessus.Server.Session]
@@ -1493,18 +1501,18 @@ function Disable-NessusPolicyPlugin
 
         [Parameter(Mandatory=$true,
                    Position=1,
-                   ParameterSetName = "Session")]
+                   ParameterSetName = 'Session')]
         [Parameter(Mandatory=$true,
                    Position=2,
-                   ParameterSetName = "Index")]
+                   ParameterSetName = 'Index')]
         [int]$PolicyID,
 
         [Parameter(Mandatory=$true,
                    Position=2,
-                   ParameterSetName = "Session")]
+                   ParameterSetName = 'Session')]
         [Parameter(Mandatory=$true,
                    Position=2,
-                   ParameterSetName = "Index")]
+                   ParameterSetName = 'Index')]
         [int[]]$PluginID
     )
     Begin
@@ -1552,22 +1560,22 @@ function Disable-NessusPolicyPlugin
             $SearchOptions['filter.0.value'] = $plugin
             try
             {
-                $Reply = $NSession.SessionState.ExecuteCommand2("/policy/list/families", $SearchOptions)
+                $Reply = $NSession.SessionState.ExecuteCommand2('/policy/list/families', $SearchOptions)
             }
             catch [System.Management.Automation.MethodInvocationException]
             {
-                write-verbose "The session has expired, Re-authenticating"
+                write-verbose 'The session has expired, Re-authenticating'
                 $reauth = $NSession.SessionManager.Login(
                     $NSession.SessionState.Username, 
                     $NSession.SessionState.Password, 
                     [ref]$true)
-                if ($reauth.reply.status -eq "OK")
+                if ($reauth.reply.status -eq 'OK')
                 {
-                    $Reply = $NSession.SessionState.ExecuteCommand2("/policy/list/families",$SearchOptions)
+                    $Reply = $NSession.SessionState.ExecuteCommand2('/policy/list/families',$SearchOptions)
                 }
                 else
                 {
-                    throw "Session expired could not Re-Authenticate"
+                    throw 'Session expired could not Re-Authenticate'
                 }
             }
 
@@ -1576,7 +1584,7 @@ function Disable-NessusPolicyPlugin
                 $reply = ($Reply | ConvertFrom-Json).reply.contents.policyfamilies.family
                 if ($reply)
                 {
-                    if ($Reply.status -ne "disabled")
+                    if ($Reply.status -ne 'disabled')
                     {
                         $EnableOps = @{
                             seq = $rand.Next()
@@ -1585,10 +1593,10 @@ function Disable-NessusPolicyPlugin
                         }
                         $ParamName = "family.$($Reply.id).plugins.$($plugin)"
 
-                        $EnableOps.Add($ParamName,"disabled")
+                        $EnableOps.Add($ParamName,'disabled')
 
                         Write-Verbose "Disabling plugin $($plugin)"
-                        $EnableReply = $NSession.SessionState.ExecuteCommand2("/policy/update",$EnableOps)
+                        $EnableReply = $NSession.SessionState.ExecuteCommand2('/policy/update',$EnableOps)
 
                     }
                     else
@@ -1630,12 +1638,12 @@ function Set-NessusPolicyWindowsCredential
         [Parameter(Mandatory=$true,
                    Position=0,
                    ValueFromPipeline=$True,
-                   ParameterSetName = "Index")]
+                   ParameterSetName = 'Index')]
         [int32]
         $Index,
 
         [Parameter(Mandatory=$true,
-                   ParameterSetName = "Session",
+                   ParameterSetName = 'Session',
                    Position=0,
                    ValueFromPipeline=$True)]
         [Nessus.Server.Session]
@@ -1643,10 +1651,10 @@ function Set-NessusPolicyWindowsCredential
 
         [Parameter(Mandatory=$true,
                    Position=1,
-                   ParameterSetName = "Session")]
+                   ParameterSetName = 'Session')]
         [Parameter(Mandatory=$true,
                    Position=2,
-                   ParameterSetName = "Index")]
+                   ParameterSetName = 'Index')]
         [int]$PolicyID,
 
         # A index value from 0 to 3 for the credentials. Nessus can have up to 4 credentials to try.
@@ -1674,8 +1682,8 @@ function Set-NessusPolicyWindowsCredential
         # Type of password format, text password, LM Hash or NTML Hash.
         [Parameter(Mandatory=$false,
                    Position=6)]
-        [ValidateSet("Password","NTLMHash","LMHash")]
-        [String]$PasswordType = "Password"
+        [ValidateSet('Password','NTLMHash','LMHash')]
+        [String]$PasswordType = 'Password'
     )
     Begin
     {
@@ -1715,29 +1723,29 @@ function Set-NessusPolicyWindowsCredential
 
         try
         {
-            $Reply = $NSession.SessionState.ExecuteCommand2("/policy/list/credentials", $opt)
+            $Reply = $NSession.SessionState.ExecuteCommand2('/policy/list/credentials', $opt)
         }
         catch [System.Management.Automation.MethodInvocationException]
         {
-            write-verbose "The session has expired, Re-authenticating"
+            write-verbose 'The session has expired, Re-authenticating'
             $reauth = $NSession.SessionManager.Login(
                 $NSession.SessionState.Username, 
                 $NSession.SessionState.Password, 
                 [ref]$true)
-            if ($reauth.reply.status -eq "OK")
+            if ($reauth.reply.status -eq 'OK')
             {
-                $Reply = $NSession.SessionState.ExecuteCommand2("/policy/list/credentials",$opt)
+                $Reply = $NSession.SessionState.ExecuteCommand2('/policy/list/credentials',$opt)
             }
             else
             {
-                throw "Session expired could not Re-Authenticate"
+                throw 'Session expired could not Re-Authenticate'
             }
         }
 
         if ($Reply)
         {
             $Creds = ($Reply | ConvertFrom-Json).reply.contents.credentials.credential
-            $WinCreds = $creds | Where-Object { $_.name -eq "Windows credentials" }
+            $WinCreds = $creds | Where-Object { $_.name -eq 'Windows credentials' }
 
             foreach ($Cred in $WinCreds.values)
             {
@@ -1745,8 +1753,8 @@ function Set-NessusPolicyWindowsCredential
                 {
                     'SMB account :' { $CredRef.Add('User0', $Cred.id) }
                     'SMB password :' { $CredRef.Add('Password0', $Cred.id) }
-                    'SMB domain (optional) :' { $CredRef.Add('PassType', $Cred.id) }
-                    'SMB password type :' {  $CredRef.Add('Domain0', $Cred.id) }
+                    'SMB domain (optional) :' { $CredRef.Add('Domain0', $Cred.id) }
+                    'SMB password type :' {  $CredRef.Add('PassType', $Cred.id) }
                     'Additional SMB account (1) :' {$CredRef.Add('User1', $Cred.id)}
                     'Additional SMB password (1) :' { $CredRef.Add('Password1', $Cred.id) }
                     'Additional SMB domain (optional) (1) :' { $CredRef.Add('Domain1', $Cred.id) }
@@ -1759,6 +1767,389 @@ function Set-NessusPolicyWindowsCredential
                     'Never send SMB credentials in clear text' { $CredRef.Add('ClearText', $Cred.id)}
                     'Only use NTLMv2' { $CredRef.Add('NTLMv2',$Cred.id) }
                     'Only use Kerberos authentication for SMB' { $CredRef.Add('Kerberos',$Cred.id) }
+                    Default {}
+                }
+            }
+
+            switch ($UserIndex)
+            {
+                0 {
+                    $opt.add(
+                        "credentials.Windows+credentials.$($CredRef['User0'])", 
+                        $Credential.GetNetworkCredential().UserName)
+
+                    $opt.add(
+                        "credentials.Windows+credentials.$($CredRef['Password0'])",
+                        $Credential.GetNetworkCredential().Password)
+
+                    $opt.add("credentials.Windows+credentials.$($CredRef['Domain0'])", 
+                        $Credential.GetNetworkCredential().Domain)
+                  }
+
+                1 {
+                    $opt.add(
+                        "credentials.Windows+credentials.$($CredRef['User1'])", 
+                        $Credential.GetNetworkCredential().UserName)
+
+                    $opt.add(
+                        "credentials.Windows+credentials.$($CredRef['Password1'])", 
+                        $Credential.GetNetworkCredential().Password)
+
+                    $opt.add(
+                        "credentials.Windows+credentials.$($CredRef['Domain1'])", 
+                        $Credential.GetNetworkCredential().Domain)
+                }
+
+                2 {
+                    $opt.add("credentials.Windows+credentials.$(
+                        $CredRef['User2'])",
+                        $Credential.GetNetworkCredential().UserName)
+                    
+                    $opt.add(
+                        "credentials.Windows+credentials.$($CredRef['Password2'])", 
+                        $Credential.GetNetworkCredential().Password)
+                    
+                    $opt.add(
+                        "credentials.Windows+credentials.$($CredRef['Domain2'])", 
+                        $Credential.GetNetworkCredential().Domain)
+                }
+
+                3 {
+                    $opt.add(
+                        "credentials.Windows+credentials.$($CredRef['User3'])", 
+                        $Credential.GetNetworkCredential().UserName)
+                    
+                    $opt.add(
+                        "credentials.Windows+credentials.$($CredRef['Password3'])", 
+                        $Credential.GetNetworkCredential().Password)
+                    
+                    $opt.add(
+                        "credentials.Windows+credentials.$($CredRef['Domain3'])", 
+                        $Credential.GetNetworkCredential().Domain)
+                }
+            }
+
+            switch ($PasswordType)
+            {
+                'Password' {$opt.add("credentials.Windows+credentials.$($CredRef['PassType'])",'Password')}
+                'NTLMHash' {$opt.add("credentials.Windows+credentials.$($CredRef['PassType'])",'NTLM+Hash')}
+                'LMHash'   {$opt.add("credentials.Windows+credentials.$($CredRef['PassType'])",'LM+Hash')}
+            }
+
+            if ($NTLMv2)
+            {
+                $opt.add("credentials.Windows+credentials.$($CredRef['NTLMv2'])",'yes')
+            }
+            else
+            {
+                $opt.add("credentials.Windows+credentials.$($CredRef['NTMLv2'])",'no')
+            }
+
+            if ($KerberosOnly)
+            {
+                $opt.add("credentials.Windows+credentials.$($CredRef['Kerberos'])",'yes')
+            }
+            else
+            {
+                $opt.add("credentials.Windows+credentials.$($CredRef['Kerberos'])",'no')
+            }
+
+            # Make sure the credentials are never sent in as cleartext
+            $opt.add("credentials.Windows+credentials.$($CredRef['ClearText'])",'yes')
+            
+            $SetResult = $NSession.SessionState.ExecuteCommand2('/policy/update',$opt)
+        }
+    }
+    End
+    {
+    }
+}
+
+
+<#
+.Synopsis
+   Get the Windows Credential settings for a Policy.
+.DESCRIPTION
+   Get the Windows Credential settings for a Policy given its Id.
+.EXAMPLE
+   Get-NessusPolicyWindowsCredential -Index 0 -PolicyID 6
+
+
+User0          : nessuscan
+Password0      : *********
+PasswordType   : Password
+Domain0        : tenablelab
+User1          : user2
+Password1      : *********
+Domain1        : domain2
+User2          : 
+Password2      : 
+Domain2        : 
+User3          : 
+Password3      : 
+Domain3        : 
+AllowClearText : yes
+NTLMv2         : no
+KerberosOnly   : no
+
+#>
+function Get-NessusPolicyWindowsCredential
+{
+    [CmdletBinding()]
+    [OutputType([int])]
+    param(
+        [Parameter(Mandatory=$true,
+                   Position=0,
+                   ValueFromPipeline=$True,
+                   ParameterSetName = 'Index')]
+        [int32]
+        $Index,
+
+        [Parameter(Mandatory=$true,
+                   ParameterSetName = 'Session',
+                   Position=0,
+                   ValueFromPipeline=$True)]
+        [Nessus.Server.Session]
+        $Session,
+
+        [Parameter(Mandatory=$true,
+                   Position=1,
+                   ParameterSetName = 'Session')]
+        [Parameter(Mandatory=$true,
+                   Position=2,
+                   ParameterSetName = 'Index')]
+        [int]$PolicyID
+    )
+    Begin
+    {
+        # Random number for sequence request
+        $rand = New-Object System.Random
+        
+        # Options for XMLRPC request
+        $opt = @{
+            seq = $rand.Next()
+            json = 1
+            policy_id = $PolicyID
+        }
+
+        # Variable to refence credential IDs
+        $CredRef = [ordered]@{}
+    }
+    Process
+    {
+        switch ($PSCmdlet.ParameterSetName)
+        {
+            'Index' 
+            {
+                foreach($conn in $Global:nessusconn)
+                {
+                    if ($conn.index -eq $Index)
+                    {
+                        $NSession = $conn
+                    }
+                }
+            }
+
+            'Session'
+            {
+                $NSession = $Session
+            }
+        }
+
+        try
+        {
+            $Reply = $NSession.SessionState.ExecuteCommand2('/policy/list/credentials', $opt)
+        }
+        catch [System.Management.Automation.MethodInvocationException]
+        {
+            write-verbose 'The session has expired, Re-authenticating'
+            $reauth = $NSession.SessionManager.Login(
+                $NSession.SessionState.Username, 
+                $NSession.SessionState.Password, 
+                [ref]$true)
+            if ($reauth.reply.status -eq 'OK')
+            {
+                $Reply = $NSession.SessionState.ExecuteCommand2('/policy/list/credentials',$opt)
+            }
+            else
+            {
+                throw 'Session expired could not Re-Authenticate'
+            }
+        }
+
+        if ($Reply)
+        {
+            $Creds = ($Reply | ConvertFrom-Json).reply.contents.credentials.credential
+            $WinCreds = $creds | Where-Object { $_.name -eq 'Windows credentials' }
+
+            foreach ($Cred in $WinCreds.values)
+            {
+                switch ($Cred.name)
+                {
+                    'SMB account :' { $CredRef.Add('User0', $Cred.svalue) }
+                    'SMB password :' { $CredRef.Add('Password0', $Cred.svalue) }
+                    'SMB password type :' {  $CredRef.Add('Domain0', $Cred.svalue) }
+                    'Additional SMB account (1) :' {$CredRef.Add('User1', $Cred.svalue)}
+                    'Additional SMB password (1) :' { $CredRef.Add('Password1', $Cred.svalue) }
+                    'Additional SMB domain (optional) (1) :' { $CredRef.Add('Domain1', $Cred.svalue) }
+                    'Additional SMB account (2) :' { $CredRef.Add('User2', $Cred.svalue) }
+                    'Additional SMB password (2) :' { $CredRef.Add('Password2', $Cred.svalue) }
+                    'Additional SMB domain (optional) (2) :' { $CredRef.Add('Domain2', $Cred.svalue) }
+                    'Additional SMB account (3) :' { $CredRef.Add('User3', $Cred.svalue) }
+                    'Additional SMB password (3) :' { $CredRef.Add('Password3', $Cred.svalue) }
+                    'Additional SMB domain (optional) (3) :' { $CredRef.Add('Domain3', $Cred.svalue) }
+                    'SMB domain (optional) :' { $CredRef.Add('PasswordType', $Cred.svalue) }
+                    'Never send SMB credentials in clear text' { $CredRef.Add('AllowClearText', $Cred.pvalues)}
+                    'Only use NTLMv2' { $CredRef.Add('NTLMv2',$Cred.pvalues) }
+                    'Only use Kerberos authentication for SMB' { $CredRef.Add('KerberosOnly',$Cred.pvalues) }
+                    Default {}
+                }
+            }
+
+            [pscustomobject]$CredRef
+        }
+    }
+    End
+    {
+    }
+}
+
+function Set-NessusPolicySSHCredential
+{
+    [CmdletBinding()]
+    [OutputType([int])]
+    Param(
+        [Parameter(Mandatory=$true,
+        Position=0,
+        ParameterSetName = 'Index')]
+        [int32[]]$Index,
+
+        [Parameter(Mandatory=$true,
+        Position=0,
+        ParameterSetName = 'Session',
+        ValueFromPipeline=$True)]
+        [Nessus.Server.Session]$Session,
+
+        # Numeric ID of the Policy to update.
+        [Parameter(Mandatory=$false,
+        Position=1,
+        ParameterSetName = 'Session')]
+        [Parameter(ParameterSetName = 'Index')]
+        [int]$PolicyID,
+
+        # A index value from 1 to 5 for the credentials. Nessus can have up to 5 credentials to try.
+        [Parameter(Mandatory=$true,
+        Position=2)]
+        [ValidateRange(1,5)] 
+        $UserIndex,
+
+        # Credential object with credentials that will be set.
+        [Parameter(Mandatory=$true,
+        Position=3)]
+        [Management.Automation.PSCredential]$Credential,
+
+        [Parameter(Mandatory=$false,
+        ParameterSetName = 'Index')]
+        [int32]$SSHPort = 22,
+
+        # Credential object with credentials that will be used for elevation.
+        [Parameter(Mandatory=$false)]
+        [Management.Automation.PSCredential]$ElevationCredential,
+
+        [Parameter(Mandatory=$false,
+        Position=6)]
+        [ValidateSet('su', 'sudo', 'su+sudo', 'pbrun', 'Cisco_Enable', 'dzdo', 'Nothing')]
+        [String]$ElevationMethod
+    )
+    Begin
+    {
+        # Random number for sequence request
+        $rand = New-Object System.Random
+        
+        # Options for XMLRPC request
+        $opt = @{
+            seq = $rand.Next()
+            json = 1
+            policy_id = $PolicyID
+        }
+
+        # Variable to refence credential IDs
+        $CredRef = [ordered]@{}
+    }
+    Process
+    {
+        switch ($PSCmdlet.ParameterSetName)
+        {
+            'Index' 
+            {
+                foreach($conn in $Global:nessusconn)
+                {
+                    if ($conn.index -eq $Index)
+                    {
+                        $NSession = $conn
+                    }
+                }
+            }
+
+            'Session'
+            {
+                $NSession = $Session
+            }
+        }
+
+        try
+        {
+            $Reply = $NSession.SessionState.ExecuteCommand2('/policy/list/credentials', $opt)
+        }
+        catch [System.Management.Automation.MethodInvocationException]
+        {
+            write-verbose 'The session has expired, Re-authenticating'
+            $reauth = $NSession.SessionManager.Login(
+                $NSession.SessionState.Username, 
+                $NSession.SessionState.Password, 
+                [ref]$true)
+            if ($reauth.reply.status -eq 'OK')
+            {
+                $Reply = $NSession.SessionState.ExecuteCommand2('/policy/list/credentials',$opt)
+            }
+            else
+            {
+                throw 'Session expired could not Re-Authenticate'
+            }
+        }
+
+        if ($Reply)
+        {
+            $Creds = ($Reply | ConvertFrom-Json).reply.contents.credentials.credential
+            $WinCreds = $creds | Where-Object { $_.name -eq 'SSH credentials' }
+
+            foreach ($Cred in $WinCreds.values)
+            {
+                switch ($Cred.name)
+                {
+                    'SSH user name :' { $CredRef.Add('User0', $Cred.id) }
+                    'SSH password (unsafe!) :' { $CredRef.Add('Password0', $Cred.id) }
+                    'SSH public key to use :' { $CredRef.Add('SSHPublicKey', $Cred.id) }
+                    'SSH private key to use :' {  $CredRef.Add('SSHPrivateKey', $Cred.id) }
+                    'Passphrase for SSH key :' {$CredRef.Add('SSHKeyPassPhrase', $Cred.id)}
+                    'Elevate privileges with :' { $CredRef.Add('ElevatePrivilege', $Cred.id) }
+                    'Privilege elevation binary path (directory) :' { $CredRef.Add('Elevation Binary', $Cred.id) }
+                    'su login :' { $CredRef.Add('SuLogin', $Cred.id) }
+                    'Escalation account :' { $CredRef.Add('EscalationAccount', $Cred.id) }
+                    'Escalation password :' { $CredRef.Add('EscalationPassword', $Cred.id) }
+                    'SSH known_hosts file :' { $CredRef.Add('KnowHostFile', $Cred.id) }
+                    'Preferred SSH port :' { $CredRef.Add('SSHPort', $Cred.id) }
+                    'Client version :' { $CredRef.Add('SSHCLientVersion', $Cred.id) }
+                    'Additional SSH user name (1) :' { $CredRef.Add('User1', $Cred.id)}
+                    'Additional SSH password (1) :' { $CredRef.Add('Password1',$Cred.id) }
+                    'Additional SSH user name (2) :' { $CredRef.Add('User2',$Cred.id) }
+                    'Additional SSH password (2) :' { $CredRef.Add('Password2',$Cred.id) }
+                    'Additional SSH user name (3) :' { $CredRef.Add('User3',$Cred.id) }
+                    'Additional SSH password (3) :' { $CredRef.Add('Password3',$Cred.id) }
+                    'Additional SSH user name (4) :' { $CredRef.Add('User4',$Cred.id) }
+                    'Additional SSH password (4) :' { $CredRef.Add('Password4',$Cred.id) }
+                    'Additional SSH user name (5) :' { $CredRef.Add('User5',$Cred.id) }
+                    'Additional SSH password (5) :' { $CredRef.Add('Password5',$Cred.id) }
                     Default {}
                 }
             }
@@ -1824,9 +2215,9 @@ function Set-NessusPolicyWindowsCredential
 
             switch ($PasswordType)
             {
-                "Password" {$opt.add("credentials.Windows+credentials.$($CredRef['PassType'])",'Password')}
-                "NTLMHash" {$opt.add("credentials.Windows+credentials.$($CredRef['PassType'])",'NTLM+Hash')}
-                "LMHash"   {$opt.add("credentials.Windows+credentials.$($CredRef['PassType'])",'LM+Hash')}
+                'Password' {$opt.add("credentials.Windows+credentials.$($CredRef['PassType'])",'Password')}
+                'NTLMHash' {$opt.add("credentials.Windows+credentials.$($CredRef['PassType'])",'NTLM+Hash')}
+                'LMHash'   {$opt.add("credentials.Windows+credentials.$($CredRef['PassType'])",'LM+Hash')}
             }
 
             if ($NTLMv2)
@@ -1850,7 +2241,7 @@ function Set-NessusPolicyWindowsCredential
             # Make sure the credentials are never sent in as cleartext
             $opt.add("credentials.Windows+credentials.$($CredRef['ClearText'])",'yes')
             
-            $SetResult = $NSession.SessionState.ExecuteCommand2("/policy/update",$opt)
+            $SetResult = $NSession.SessionState.ExecuteCommand2('/policy/update',$opt)
         }
     }
     End
@@ -1858,59 +2249,26 @@ function Set-NessusPolicyWindowsCredential
     }
 }
 
-
-<#
-.Synopsis
-   Get the Windows Credential settings for a Policy.
-.DESCRIPTION
-   Get the Windows Credential settings for a Policy given its Id.
-.EXAMPLE
-   Get-NessusPolicyWindowsCredential -Index 0 -PolicyID 6
-
-
-User0          : nessuscan
-Password0      : *********
-PasswordType   : Password
-Domain0        : tenablelab
-User1          : user2
-Password1      : *********
-Domain1        : domain2
-User2          : 
-Password2      : 
-Domain2        : 
-User3          : 
-Password3      : 
-Domain3        : 
-AllowClearText : yes
-NTLMv2         : no
-KerberosOnly   : no
-
-#>
-function Get-NessusPolicyWindowsCredential
+function Get-NessusPolicySSHCredential
 {
     [CmdletBinding()]
     [OutputType([int])]
-    param(
+    Param(
         [Parameter(Mandatory=$true,
-                   Position=0,
-                   ValueFromPipeline=$True,
-                   ParameterSetName = "Index")]
-        [int32]
-        $Index,
+        Position=0,
+        ParameterSetName = 'Index')]
+        [int32]$Index,
 
         [Parameter(Mandatory=$true,
-                   ParameterSetName = "Session",
-                   Position=0,
-                   ValueFromPipeline=$True)]
-        [Nessus.Server.Session]
-        $Session,
+        Position=0,
+        ParameterSetName = 'Session',
+        ValueFromPipeline=$True)]
+        [Nessus.Server.Session]$Session,
 
-        [Parameter(Mandatory=$true,
-                   Position=1,
-                   ParameterSetName = "Session")]
-        [Parameter(Mandatory=$true,
-                   Position=2,
-                   ParameterSetName = "Index")]
+        [Parameter(Mandatory=$false,
+        Position=1,
+        ParameterSetName = 'Session')]
+        [Parameter(ParameterSetName = 'Index')]
         [int]$PolicyID
     )
     Begin
@@ -1951,50 +2309,103 @@ function Get-NessusPolicyWindowsCredential
 
         try
         {
-            $Reply = $NSession.SessionState.ExecuteCommand2("/policy/list/credentials", $opt)
+            $Reply = $NSession.SessionState.ExecuteCommand2('/policy/list/credentials', $opt)
         }
         catch [System.Management.Automation.MethodInvocationException]
         {
-            write-verbose "The session has expired, Re-authenticating"
+            write-verbose 'The session has expired, Re-authenticating'
             $reauth = $NSession.SessionManager.Login(
                 $NSession.SessionState.Username, 
                 $NSession.SessionState.Password, 
                 [ref]$true)
-            if ($reauth.reply.status -eq "OK")
+            if ($reauth.reply.status -eq 'OK')
             {
-                $Reply = $NSession.SessionState.ExecuteCommand2("/policy/list/credentials",$opt)
+                $Reply = $NSession.SessionState.ExecuteCommand2('/policy/list/credentials',$opt)
             }
             else
             {
-                throw "Session expired could not Re-Authenticate"
+                throw 'Session expired could not Re-Authenticate'
             }
         }
 
         if ($Reply)
         {
             $Creds = ($Reply | ConvertFrom-Json).reply.contents.credentials.credential
-            $WinCreds = $creds | Where-Object { $_.name -eq "Windows credentials" }
+            $SSHCred = $creds | Where-Object { $_.name -eq 'SSH settings' }
 
-            foreach ($Cred in $WinCreds.values)
+            foreach ($Cred in $SSHCred.values)
             {
                 switch ($Cred.name)
                 {
-                    'SMB account :' { $CredRef.Add('User0', $Cred.svalue) }
-                    'SMB password :' { $CredRef.Add('Password0', $Cred.svalue) }
-                    'SMB password type :' {  $CredRef.Add('Domain0', $Cred.svalue) }
-                    'Additional SMB account (1) :' {$CredRef.Add('User1', $Cred.svalue)}
-                    'Additional SMB password (1) :' { $CredRef.Add('Password1', $Cred.svalue) }
-                    'Additional SMB domain (optional) (1) :' { $CredRef.Add('Domain1', $Cred.svalue) }
-                    'Additional SMB account (2) :' { $CredRef.Add('User2', $Cred.svalue) }
-                    'Additional SMB password (2) :' { $CredRef.Add('Password2', $Cred.svalue) }
-                    'Additional SMB domain (optional) (2) :' { $CredRef.Add('Domain2', $Cred.svalue) }
-                    'Additional SMB account (3) :' { $CredRef.Add('User3', $Cred.svalue) }
-                    'Additional SMB password (3) :' { $CredRef.Add('Password3', $Cred.svalue) }
-                    'Additional SMB domain (optional) (3) :' { $CredRef.Add('Domain3', $Cred.svalue) }
-                    'SMB domain (optional) :' { $CredRef.Add('PasswordType', $Cred.svalue) }
-                    'Never send SMB credentials in clear text' { $CredRef.Add('AllowClearText', $Cred.pvalues)}
-                    'Only use NTLMv2' { $CredRef.Add('NTLMv2',$Cred.pvalues) }
-                    'Only use Kerberos authentication for SMB' { $CredRef.Add('KerberosOnly',$Cred.pvalues) }
+                    'SSH user name :' 
+                        { $CredRef.Add('User0', $Cred.pvalues) }
+
+                    'SSH password (unsafe!) :' 
+                        { $CredRef.Add('Password0', $Cred.svalue) }
+
+                    'Additional SSH user name (1) :' 
+                        { $CredRef.Add('User1', $Cred.svalue)}
+
+                    'Additional SSH password (1) :' 
+                        { $CredRef.Add('Password1',$Cred.svalue) }
+
+                    'Additional SSH user name (2) :' 
+                        { $CredRef.Add('User2',$Cred.svalue) }
+
+                    'Additional SSH password (2) :' 
+                        { $CredRef.Add('Password2',$Cred.svalue) }
+
+                    'Additional SSH user name (3) :' 
+                        { $CredRef.Add('User3',$Cred.svalue) }
+
+                    'Additional SSH password (3) :' 
+                        { $CredRef.Add('Password3',$Cred.svalue) }
+
+                    'Additional SSH user name (4) :' 
+                        { $CredRef.Add('User4',$Cred.svalue) }
+
+                    'Additional SSH password (4) :' 
+                        { $CredRef.Add('Password4',$Cred.svalue) }
+
+                    'Additional SSH user name (5) :' 
+                        { $CredRef.Add('User5',$Cred.svalue) }
+
+                    'Additional SSH password (5) :' 
+                        { $CredRef.Add('Password5',$Cred.svalue) }
+
+                    'SSH public key to use :' 
+                        { $CredRef.Add('SSHPublicKey', $Cred.svalue) }
+
+                    'SSH private key to use :' 
+                        {  $CredRef.Add('SSHPrivateKey', $Cred.svalue) }
+
+                    'Passphrase for SSH key :' 
+                        {$CredRef.Add('SSHKeyPassPhrase', $Cred.svalue)}
+
+                    'Elevate privileges with :' 
+                        { $CredRef.Add('ElevatePrivilege', $Cred.svalue) }
+
+                    'Privilege elevation binary path (directory) :' 
+                        { $CredRef.Add('Elevation Binary', $Cred.svalue) }
+
+                    'su login :' 
+                        { $CredRef.Add('SuLogin', $Cred.svalue) }
+
+                    'Escalation account :' 
+                        { $CredRef.Add('EscalationAccount', $Cred.pvalues) }
+
+                    'Escalation password :' 
+                        { $CredRef.Add('EscalationPassword', $Cred.svalue) }
+                    
+                    'SSH known_hosts file :' 
+                        { $CredRef.Add('KnowHostFile', $Cred.svalue) }
+                    
+                    'Preferred SSH port :' 
+                        { $CredRef.Add('SSHPort', $Cred.pvalues) }
+                    
+                    'Client version :' 
+                        { $CredRef.Add('SSHCLientVersion', $Cred.pvalues) }
+                    
                     Default {}
                 }
             }

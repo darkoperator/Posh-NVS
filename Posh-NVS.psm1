@@ -2344,3 +2344,92 @@ function Update-NessusUserPassword
     }
 }
 
+
+function Get-NessusMultiScannerInfo
+{
+    [CmdletBinding()]
+    [OutputType([int])]
+    param(
+        [Parameter(Mandatory=$true,
+                   Position=0,
+                   ValueFromPipeline=$True,
+                   ParameterSetName = 'Index')]
+        [int32]
+        $Index,
+
+        [Parameter(Mandatory=$true,
+                   ParameterSetName = 'Session',
+                   Position=0,
+                   ValueFromPipeline=$True)]
+        [Nessus.Server.Session]
+        $Session
+    )
+    Begin
+    {
+        # Random number for sequence request
+        $rand = New-Object System.Random
+        
+        # Options for XMLRPC request
+        $Options = @{
+            seq = $rand.Next()
+            json = 1
+        }
+    }
+    Process
+    {
+        switch ($PSCmdlet.ParameterSetName)
+        {
+            'Index' 
+            {
+                foreach($conn in $Global:nessusconn)
+                {
+                    if ($conn.index -eq $Index)
+                    {
+                        $NSession = $conn
+                    }
+                }
+            }
+
+            'Session'
+            {
+                $NSession = $Session
+            }
+        }
+        
+
+        try
+        {
+            $Reply = $NSession.SessionState.ExecuteCommand2('/multi-scanner/info ', $Options)
+        }
+        catch [System.Management.Automation.MethodInvocationException]
+        {
+            write-verbose 'The session has expired, Re-authenticating'
+            $reauth = $NSession.SessionManager.Login(
+                $NSession.SessionState.Username, 
+                $NSession.SessionState.Password, 
+                [ref]$true)
+            if ($reauth.reply.status -eq 'OK')
+            {
+                $Reply = $NSession.SessionState.ExecuteCommand2('/multi-scanner/info ',$Options)
+            }
+            else
+            {
+                throw 'Session expired could not Re-Authenticate'
+            }
+        }
+
+        if ($Reply)
+        {
+                $ResponseObj = $Reply | ConvertFrom-Json
+                if ($ResponseObj.reply.status -eq "OK")
+                {
+                    $InfoObje = $ResponseObj.reply.contents
+                    $InfoObje.pstypenames.insert(0,'Nessus.MultiServer.Info')
+                    $InfoObje
+                }
+            }
+    }
+    End
+    {
+    }
+}

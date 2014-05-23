@@ -73,12 +73,12 @@ function Get-NessusReports
     param(
         [Parameter(Mandatory=$true,
                    Position=0,
-                   ParameterSetName = "Index")]
+                   ParameterSetName = 'Index')]
         [int32[]]
         $Index,
 
         [Parameter(Mandatory=$true,
-                   ParameterSetName = "Session",
+                   ParameterSetName = 'Session',
                    Position=0,
                    ValueFromPipeline=$True)]
         [Nessus.Server.Session]
@@ -86,8 +86,8 @@ function Get-NessusReports
 
         [Parameter(Mandatory=$false,
                    Position=1,
-                   ParameterSetName = "Session")]
-        [Parameter(ParameterSetName = "Index")]
+                   ParameterSetName = 'Session')]
+        [Parameter(ParameterSetName = 'Index')]
         $ReportName
 
     )
@@ -119,27 +119,27 @@ function Get-NessusReports
         Catch [Net.WebException] 
         {
            
-            write-verbose "The session has expired, Re-authenticating"
+            write-verbose 'The session has expired, Re-authenticating'
             $reauth = $ns.SessionManager.Login(
                 $ns.SessionState.Username, 
                 $ns.SessionState.Password, 
                 [ref]$true)
-            if ($reauth.reply.status -eq "OK")
+            if ($reauth.reply.status -eq 'OK')
             {
                 $request_reply = $NSession.SessionManager.ListReports().reply
             }
             else
             {
-                throw "Session expired could not Re-Authenticate"
+                throw 'Session expired could not Re-Authenticate'
             }
             
         }
 
         # Check that we got the proper response
-        if ($request_reply.status -eq "OK"){
+        if ($request_reply.status -eq 'OK'){
             # Returns epoch time so we need to tranform it
             $origin = New-Object -Type DateTime -ArgumentList 1970, 1, 1, 0, 0, 0, 0
-            Write-Verbose -Message "We got an OK reply from the session."
+            Write-Verbose -Message 'We got an OK reply from the session.'
             if ($request_reply.contents.reports.report) {
                 # Return all policies if none is specified by name
                 if ($ReportName -eq $null){
@@ -153,8 +153,8 @@ function Get-NessusReports
                         $reportobj.ReportID   = $report.name
                         $reportobj.ReportName = $report.readableName
                         $reportobj.Status     = $report.status
-                        $reportobj.KB         = &{if ($hasKB -eq "TRUE"){$true}else{$false}}
-                        $reportobj.AuditTrail = &{if ($hasaudit -eq "TRUE"){$true}else{$false}}
+                        $reportobj.KB         = &{if ($hasKB -eq 'TRUE'){$true}else{$false}}
+                        $reportobj.AuditTrail = &{if ($hasaudit -eq 'TRUE'){$true}else{$false}}
                         $reportobj.Date       = $origin.AddSeconds($report.timestamp).ToLocalTime()
                         $reportobj.Session    = $NSession
                         Add-Member -InputObject $reportobj -MemberType ScriptMethod GetXML {
@@ -175,8 +175,8 @@ function Get-NessusReports
                             $reportobj.ReportID   = $report.name
                             $reportobj.ReportName = $report.readableName
                             $reportobj.Status     = $report.status
-                            $reportobj.KB         = &{if ($hasKB -eq "TRUE"){$true}else{$false}}
-                            $reportobj.AuditTrail = &{if ($hasaudit -eq "TRUE"){$true}else{$false}}
+                            $reportobj.KB         = &{if ($hasKB -eq 'TRUE'){$true}else{$false}}
+                            $reportobj.AuditTrail = &{if ($hasaudit -eq 'TRUE'){$true}else{$false}}
                             $reportobj.Date       = $origin.AddSeconds($report.timestamp).ToLocalTime()
                             $reportobj.Session    = $NSession
                             # Method for getting the Nessusv2 XML
@@ -192,7 +192,7 @@ function Get-NessusReports
                 }
             }
             else {
-                Write-Warning "No reports where found."
+                Write-Warning 'No reports where found.'
             }
         }
     }
@@ -205,12 +205,12 @@ function Publish-NessusReport
     param(
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Index")]
+        ParameterSetName = 'Index')]
         [int32[]]$Index,
 
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Session",
+        ParameterSetName = 'Session',
         ValueFromPipeline=$True)]
         [Nessus.Server.Session]$Session,
 
@@ -253,32 +253,32 @@ function Publish-NessusReport
 
         Try {
             #add token to options
-            $ops.Add("token",$NSession.token)
-            $request_reply = $NSession.SessionState.upload("/file/upload", $FullPath)
+            $ops.Add('token',$NSession.token)
+            $request_reply = $NSession.SessionState.upload('/file/upload', $FullPath)
         }
         Catch [Net.WebException] {
            
-            write-verbose "The session has expired, Re-authenticating"
+            write-verbose 'The session has expired, Re-authenticating'
             $reauth = $ns.SessionManager.Login(
                 $ns.SessionState.Username, 
                 $ns.SessionState.Password, 
                 [ref]$true)
-            if ($reauth.reply.status -eq "OK")
+            if ($reauth.reply.status -eq 'OK')
             {
-                $request_reply = $NSession.SessionState.upload("/file/upload", $FullPath)
+                $request_reply = $NSession.SessionState.upload('/file/upload', $FullPath)
             }
             else{
-                throw "Session expired could not Re-Authenticate"
+                throw 'Session expired could not Re-Authenticate'
             }
 
             
             
         }
             
-        if ($request_reply.reply.status -eq "OK")
+        if ($request_reply.reply.status -eq 'OK')
         {
-            $import_reply = $NSession.SessionState.executecommand("/file/report/import",$ops)
-            if ($import_reply.reply.status -eq "OK")
+            $import_reply = $NSession.SessionState.executecommand('/file/report/import',$ops)
+            if ($import_reply.reply.status -eq 'OK')
             {
                 return $true
             }
@@ -326,19 +326,19 @@ function Get-NessusV2ReportXML
     param(
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Index")]
+        ParameterSetName = 'Index')]
         [int32[]]$Index,
 
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Session",
+        ParameterSetName = 'Session',
         ValueFromPipeline=$True)]
         [Nessus.Server.Session]$Session,
 
         [Parameter(Mandatory=$true,
         Position=1,
-        ParameterSetName = "Session")]
-        [Parameter(ParameterSetName = "Index")]
+        ParameterSetName = 'Session')]
+        [Parameter(ParameterSetName = 'Index')]
         $ReportID
 
     )
@@ -366,28 +366,28 @@ function Get-NessusV2ReportXML
             $request_reply = $NSession.SessionManager.GetNessusV2Report($ReportID)
         }
         Catch [Net.WebException] {
-           if ($_.exception -match ".*403.*") {
-                write-verbose "The session has expired, Re-authenticating"
+           if ($_.exception -match '.*403.*') {
+                write-verbose 'The session has expired, Re-authenticating'
                 $reauth = $ns.SessionManager.Login(
                     $ns.SessionState.Username, 
                     $ns.SessionState.Password, 
                     [ref]$true)
-                if ($reauth.reply.status -eq "OK"){
+                if ($reauth.reply.status -eq 'OK'){
                     $request_reply = $NSession.SessionManager.GetNessusV2Report($ReportID)
                 }
                 else{
-                    throw "Session expired could not Re-Authenticate"
+                    throw 'Session expired could not Re-Authenticate'
                 }
             }
-            elseif ($_.exception -match ".*404.*") {
-                throw "A report with that ID was not found on Nessus Server"
+            elseif ($_.exception -match '.*404.*') {
+                throw 'A report with that ID was not found on Nessus Server'
             } 
         }
 
         # Check if scan still running
         $report_reply = $NSession.SessionManager.ListReports().reply
         foreach ($report in $report_reply.contents.reports.report){
-            if (($report.name -eq $ReportID) -and ($report.status -ne "completed")) {
+            if (($report.name -eq $ReportID) -and ($report.status -ne 'completed')) {
                 Write-Warning "The report has not finished running, it has a status of $($report.status)"
             }
          }
@@ -414,19 +414,19 @@ function Remove-NessusReport
     param(
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Index")]
+        ParameterSetName = 'Index')]
         [int32[]]$Index,
 
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Session",
+        ParameterSetName = 'Session',
         ValueFromPipeline=$True)]
         [Nessus.Server.Session]$Session,
 
         [Parameter(Mandatory=$true,
         Position=1,
-        ParameterSetName = "Session")]
-        [Parameter(ParameterSetName = "Index")]
+        ParameterSetName = 'Session')]
+        [Parameter(ParameterSetName = 'Index')]
         $ReportID
 
     )
@@ -454,25 +454,25 @@ function Remove-NessusReport
             $request_reply = $NSession.SessionManager.DeleteReport($ReportID)
         }
         Catch [Net.WebException] {
-           if ($_.exception -match ".*403.*") {
-                write-verbose "The session has expired, Re-authenticating"
+           if ($_.exception -match '.*403.*') {
+                write-verbose 'The session has expired, Re-authenticating'
                 $reauth = $ns.SessionManager.Login(
                     $ns.SessionState.Username, 
                     $ns.SessionState.Password, 
                     [ref]$true)
-                if ($reauth.reply.status -eq "OK"){
+                if ($reauth.reply.status -eq 'OK'){
                     $request_reply = $NSession.SessionManager.DeleteReport($ReportID)
                 }
                 else{
-                    throw "Session expired could not Re-Authenticate"
+                    throw 'Session expired could not Re-Authenticate'
                 }
             }
-            elseif ($_.exception -match ".*404.*") {
-                throw "A report with that ID was not found on Nessus Server"
+            elseif ($_.exception -match '.*404.*') {
+                throw 'A report with that ID was not found on Nessus Server'
             } 
         }
 
-        if ($request_reply.reply.status -eq "OK")
+        if ($request_reply.reply.status -eq 'OK')
         {
             $true
         }
@@ -538,19 +538,19 @@ function Get-NessusReportHostSummary
     param(
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Index")]
+        ParameterSetName = 'Index')]
         [int32[]]$Index,
 
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Session",
+        ParameterSetName = 'Session',
         ValueFromPipeline=$True)]
         [Nessus.Server.Session]$Session,
 
         [Parameter(Mandatory=$true,
         Position=1,
-        ParameterSetName = "Session")]
-        [Parameter(ParameterSetName = "Index")]
+        ParameterSetName = 'Session')]
+        [Parameter(ParameterSetName = 'Index')]
         $ReportID
 
     )
@@ -578,28 +578,28 @@ function Get-NessusReportHostSummary
             $request_reply = $NSession.SessionManager.GetReportHosts($ReportID)
         }
         Catch [Net.WebException] {
-           if ($_.exception -match ".*403.*") {
-                write-verbose "The session has expired, Re-authenticating"
+           if ($_.exception -match '.*403.*') {
+                write-verbose 'The session has expired, Re-authenticating'
                 $reauth = $ns.SessionManager.Login(
                     $ns.SessionState.Username, 
                     $ns.SessionState.Password, 
                     [ref]$true)
-                if ($reauth.reply.status -eq "OK"){
+                if ($reauth.reply.status -eq 'OK'){
                     $request_reply = $NSession.SessionManager.GetReportHosts($ReportID)
                 }
                 else{
-                    throw "Session expired could not Re-Authenticate"
+                    throw 'Session expired could not Re-Authenticate'
                 }
             }
-            elseif ($_.exception -match ".*404.*") {
-                throw "A report with that ID was not found on Nessus Server"
+            elseif ($_.exception -match '.*404.*') {
+                throw 'A report with that ID was not found on Nessus Server'
             } 
         }
-        $severity = @{"0"="Info";"1"="Low";"2"="Medium";"3"="High";"4"="Critical"}   
-        if ($request_reply.reply.status -eq "OK"){     
+        $severity = @{'0'='Info';'1'='Low';'2'='Medium';'3'='High';'4'='Critical'}   
+        if ($request_reply.reply.status -eq 'OK'){     
             foreach($host in $request_reply.reply.contents.hostlist.host){
                 $host_props = [ordered]@{}
-                $host_props.add("Hostname",$host.hostname)
+                $host_props.add('Hostname',$host.hostname)
                 foreach($vulncount in $host.severityCount.ChildNodes)
                 {
                     $host_props.add($severity[$vulncount.severityLevel], $vulncount.count)
@@ -652,19 +652,19 @@ function Get-NessusReportHostsDetailed
     param(
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Index")]
+        ParameterSetName = 'Index')]
         [int32[]]$Index,
 
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Session",
+        ParameterSetName = 'Session',
         ValueFromPipeline=$True)]
         [Nessus.Server.Session]$Session,
 
         [Parameter(Mandatory=$true,
         Position=1,
-        ParameterSetName = "Session")]
-        [Parameter(ParameterSetName = "Index")]
+        ParameterSetName = 'Session')]
+        [Parameter(ParameterSetName = 'Index')]
         $ReportID
 
     )
@@ -692,34 +692,34 @@ function Get-NessusReportHostsDetailed
             $request_reply = $NSession.SessionManager.GetNessusV2Report($ReportID)
         }
         Catch [Net.WebException] {
-           if ($_.exception -match ".*403.*") {
-                write-verbose "The session has expired, Re-authenticating"
+           if ($_.exception -match '.*403.*') {
+                write-verbose 'The session has expired, Re-authenticating'
                 $reauth = $ns.SessionManager.Login(
                     $ns.SessionState.Username, 
                     $ns.SessionState.Password, 
                     [ref]$true)
-                if ($reauth.reply.status -eq "OK"){
+                if ($reauth.reply.status -eq 'OK'){
                     $request_reply = $NSession.SessionManager.GetNessusV2Report($ReportID)
                 }
                 else{
-                    throw "Session expired could not Re-Authenticate"
+                    throw 'Session expired could not Re-Authenticate'
                 }
             }
-            elseif ($_.exception -match ".*404.*") {
-                throw "A report with that ID was not found on Nessus Server"
+            elseif ($_.exception -match '.*404.*') {
+                throw 'A report with that ID was not found on Nessus Server'
             } 
         }
 
         # Check if scan still running
         $report_reply = $NSession.SessionManager.ListReports().reply
         foreach ($report in $report_reply.contents.reports.report){
-            if (($report.name -eq $ReportID) -and ($report.status -ne "completed")) {
+            if (($report.name -eq $ReportID) -and ($report.status -ne 'completed')) {
                 Write-Warning "The report has not finished running, it has a status of $($report.status)"
             }
          }
         $nessus = $request_reply
         # Serveriry Hash to use
-        $severity = @{"0"="Info";"1"="Low";"2"="Medium";"3"="High";"4"="Critical"}
+        $severity = @{'0'='Info';'1'='Low';'2'='Medium';'3'='High';'4'='Critical'}
         # How many servers
         $record_count = $nessus.NessusClientData_v2.Report.ReportHost.Length
         # processed host count
@@ -736,7 +736,7 @@ function Get-NessusReportHostsDetailed
             # Gathering properties for each host
             foreach($hostproperty in $reporthost.HostProperties.tag) 
             {
-                $hproperties += @{($hostproperty.name -replace "-","_") = $hostproperty."#text"}
+                $hproperties += @{($hostproperty.name -replace '-','_') = $hostproperty.'#text'}
             }
     
             # Set the Host and Host Properties object properties
@@ -744,7 +744,7 @@ function Get-NessusReportHostsDetailed
             $host_properties += @{Host_Properties = [pscustomobject]$hproperties}
 
             # Collect vulnerable information for each host
-            foreach ($reportitem in ($reporthost.ReportItem | where {$_.pluginID -ne "0"})) {
+            foreach ($reportitem in ($reporthost.ReportItem | where {$_.pluginID -ne '0'})) {
                     
                 $vuln_properties = [pscustomobject]@{
                 Host                 = $hostip.Trim()
@@ -792,7 +792,7 @@ function Get-NessusReportHostsDetailed
             if ($record_count -gt 1)
             {
                 $record_progress = [int][Math]::Ceiling((($i / $record_count) * 100))
-                Write-Progress -Activity "Processing Vulnerability Report" -PercentComplete $record_progress -Status "Processing records - $record_progress%" -Id 1;
+                Write-Progress -Activity 'Processing Vulnerability Report' -PercentComplete $record_progress -Status "Processing records - $record_progress%" -Id 1;
                 $i++
             }
         }
@@ -856,34 +856,34 @@ function Get-NessusReportItems
     param(
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Index")]
+        ParameterSetName = 'Index')]
         [int32[]]$Index,
 
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Session",
+        ParameterSetName = 'Session',
         ValueFromPipeline=$True)]
         [Nessus.Server.Session]$Session,
 
         # Report to query
         [Parameter(Mandatory=$true,
         Position=1,
-        ParameterSetName = "Session")]
-        [Parameter(ParameterSetName = "Index")]
+        ParameterSetName = 'Session')]
+        [Parameter(ParameterSetName = 'Index')]
         $ReportID,
 
         # Filter by host providing a collection of Host IP Addresses to filter on.
         [Parameter(Mandatory=$false,
-        ParameterSetName = "Session")]
-        [Parameter(ParameterSetName = "Index")]
+        ParameterSetName = 'Session')]
+        [Parameter(ParameterSetName = 'Index')]
         [string[]]$HostFilter,
 
         # Filter by one ore more severity level. Levels:Info, Low, Medium, High and Critical
         [Parameter(Mandatory=$false,
-        ParameterSetName = "Session")]
-        [Parameter(ParameterSetName = "Index")]
-        [ValidateSet("Info","Low","Medium","High","Critical")]
-        [string[]]$SeverityFilter = @("Info","Low","Medium","High","Critical")
+        ParameterSetName = 'Session')]
+        [Parameter(ParameterSetName = 'Index')]
+        [ValidateSet('Info','Low','Medium','High','Critical')]
+        [string[]]$SeverityFilter = @('Info','Low','Medium','High','Critical')
     )
     BEGIN 
     {
@@ -909,34 +909,34 @@ function Get-NessusReportItems
             $request_reply = $NSession.SessionManager.GetNessusV2Report($ReportID)
         }
         Catch [Net.WebException] {
-           if ($_.exception -match ".*403.*") {
-                write-verbose "The session has expired, Re-authenticating"
+           if ($_.exception -match '.*403.*') {
+                write-verbose 'The session has expired, Re-authenticating'
                 $reauth = $ns.SessionManager.Login(
                     $ns.SessionState.Username, 
                     $ns.SessionState.Password, 
                     [ref]$true)
-                if ($reauth.reply.status -eq "OK"){
+                if ($reauth.reply.status -eq 'OK'){
                     $request_reply = $NSession.SessionManager.GetNessusV2Report($ReportID)
                 }
                 else{
-                    throw "Session expired could not Re-Authenticate"
+                    throw 'Session expired could not Re-Authenticate'
                 }
             }
-            elseif ($_.exception -match ".*404.*") {
-                throw "A report with that ID was not found on Nessus Server"
+            elseif ($_.exception -match '.*404.*') {
+                throw 'A report with that ID was not found on Nessus Server'
             } 
         }
 
         # Check if scan still running
         $report_reply = $NSession.SessionManager.ListReports().reply
         foreach ($report in $report_reply.contents.reports.report){
-            if (($report.name -eq $ReportID) -and ($report.status -ne "completed")) {
+            if (($report.name -eq $ReportID) -and ($report.status -ne 'completed')) {
                 Write-Warning "The report has not finished running, it has a status of $($report.status)"
             }
          }
         $nessus = $request_reply
         # Serveriry Hash to use
-        $severity = @{"0"="Info";"1"="Low";"2"="Medium";"3"="High";"4"="Critical"}
+        $severity = @{'0'='Info';'1'='Low';'2'='Medium';'3'='High';'4'='Critical'}
         # How many servers
         $record_count = $nessus.NessusClientData_v2.Report.ReportHost.Length
         # processed host count
@@ -994,7 +994,7 @@ function Get-NessusReportItems
             if ($record_count -gt 1)
             {
                 $record_progress = [int][Math]::Ceiling((($i / $record_count) * 100))
-                Write-Progress -Activity "Processing Vulnerability Report" -PercentComplete $record_progress -Status "Processing records - $record_progress%" -Id 1;
+                Write-Progress -Activity 'Processing Vulnerability Report' -PercentComplete $record_progress -Status "Processing records - $record_progress%" -Id 1;
                 $i++
             }
         }
@@ -1095,19 +1095,19 @@ function Get-NessusReportVulnSummary
     param(
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Index")]
+        ParameterSetName = 'Index')]
         [int32[]]$Index,
 
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Session",
+        ParameterSetName = 'Session',
         ValueFromPipeline=$True)]
         [Nessus.Server.Session]$Session,
 
         [Parameter(Mandatory=$true,
         Position=1,
-        ParameterSetName = "Session")]
-        [Parameter(ParameterSetName = "Index")]
+        ParameterSetName = 'Session')]
+        [Parameter(ParameterSetName = 'Index')]
         $ReportID
 
     )
@@ -1140,30 +1140,30 @@ function Get-NessusReportVulnSummary
 
         try {
             Write-Verbose "getting summary for report $($ReportID)"
-            $request_reply = $NSession.SessionState.ExecuteCommand("/report2/vulnerabilities", $opts)
+            $request_reply = $NSession.SessionState.ExecuteCommand('/report2/vulnerabilities', $opts)
             
         }
         Catch [Net.WebException] {
-           if ($_.exception -match ".*403.*") {
-                write-verbose "The session has expired, Re-authenticating"
+           if ($_.exception -match '.*403.*') {
+                write-verbose 'The session has expired, Re-authenticating'
                 $reauth = $ns.SessionManager.Login(
                     $ns.SessionState.Username, 
                     $ns.SessionState.Password, 
                     [ref]$true)
-                if ($reauth.reply.status -eq "OK"){
-                    $request_reply = $NSession.SessionState.ExecuteCommand("/report2/vulnerabilities", $opts)
+                if ($reauth.reply.status -eq 'OK'){
+                    $request_reply = $NSession.SessionState.ExecuteCommand('/report2/vulnerabilities', $opts)
                 }
                 else{
-                    throw "Session expired could not Re-Authenticate"
+                    throw 'Session expired could not Re-Authenticate'
                 }
             }
-            elseif ($_.exception -match ".*404.*") {
-                throw "A report with that ID was not found on Nessus Server"
+            elseif ($_.exception -match '.*404.*') {
+                throw 'A report with that ID was not found on Nessus Server'
             } 
         }
-        $severity = @{"0"="Info";"1"="Low";"2"="Medium";"3"="High";"4"="Critical"}
-        if ($request_reply.reply.status -eq "OK"){
-            Write-Verbose "We got OK on request." 
+        $severity = @{'0'='Info';'1'='Low';'2'='Medium';'3'='High';'4'='Critical'}
+        if ($request_reply.reply.status -eq 'OK'){
+            Write-Verbose 'We got OK on request.' 
             foreach($vuln in $request_reply.reply.contents.vulnList.vulnerability)
             {
                 $vuln_props = [ordered]@{
@@ -1205,31 +1205,31 @@ function Get-NessusReportPluginAudit
     param(
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Index")]
+        ParameterSetName = 'Index')]
         [int32[]]$Index,
 
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Session",
+        ParameterSetName = 'Session',
         ValueFromPipeline=$True)]
         [Nessus.Server.Session]$Session,
 
         [Parameter(Mandatory=$true,
         Position=1,
-        ParameterSetName = "Session")]
-        [Parameter(ParameterSetName = "Index")]
+        ParameterSetName = 'Session')]
+        [Parameter(ParameterSetName = 'Index')]
         [string]$ReportID,
 
         [Parameter(Mandatory=$true,
         Position=2,
-        ParameterSetName = "Session")]
-        [Parameter(ParameterSetName = "Index")]
+        ParameterSetName = 'Session')]
+        [Parameter(ParameterSetName = 'Index')]
         [string]$Host,
 
         [Parameter(Mandatory=$true,
         Position=3,
-        ParameterSetName = "Session")]
-        [Parameter(ParameterSetName = "Index")]
+        ParameterSetName = 'Session')]
+        [Parameter(ParameterSetName = 'Index')]
         [int[]]$PluginID
     )
     BEGIN 
@@ -1261,28 +1261,28 @@ function Get-NessusReportPluginAudit
         
             Catch [Net.WebException] 
             {
-               if ($_.exception -match ".*403.*") {
-                    write-verbose "The session has expired, Re-authenticating"
+               if ($_.exception -match '.*403.*') {
+                    write-verbose 'The session has expired, Re-authenticating'
                     $reauth = $ns.SessionManager.Login(
                         $ns.SessionState.Username, 
                         $ns.SessionState.Password, 
                         [ref]$true)
-                    if ($reauth.reply.status -eq "OK"){
+                    if ($reauth.reply.status -eq 'OK'){
                         $request_reply = $NSession.SessionManager.GetAuditTrail($ReportID, $host, $Id)
                     }
                     else{
-                        throw "Session expired could not Re-Authenticate"
+                        throw 'Session expired could not Re-Authenticate'
                     }
                 }
-                elseif ($_.exception -match ".*404.*") {
-                    throw "A report with that ID was not found on Nessus Server"
+                elseif ($_.exception -match '.*404.*') {
+                    throw 'A report with that ID was not found on Nessus Server'
                 } 
             }
 
             # Check if scan still running
             $report_reply = $NSession.SessionManager.ListReports().reply
             foreach ($report in $report_reply.contents.reports.report){
-                if (($report.name -eq $ReportID) -and ($report.status -ne "completed")) {
+                if (($report.name -eq $ReportID) -and ($report.status -ne 'completed')) {
                     Write-Warning "The report has not finished running, it has a status of $($report.status)"
                 }
              }
@@ -1340,22 +1340,22 @@ function Import-NessusV2Report
         [Parameter(Mandatory=$true,
                    ValueFromPipelineByPropertyName=$true,
                    Position=0,
-                   ParameterSetName = "File")]
+                   ParameterSetName = 'File')]
         [ValidateScript({Test-Path $_})] 
         $NessusFile,
 
         [Parameter(Mandatory=$true,
                    ValueFromPipelineByPropertyName=$true,
                    Position=0,
-                   ParameterSetName = "XMLDoc")]
+                   ParameterSetName = 'XMLDoc')]
         [xml]$InputObject,
 
         # Type of Information to return
         [Parameter(Mandatory=$false,
                    ValueFromPipelineByPropertyName=$true,
                    Position=1)]
-        [ValidateSet("Config", "Vulnerabilities", "EnabledPlugins", "FamilySelection", "ReportInfo", "PluginPreferences")] 
-        $InfoType = "Vulnerabilities"
+        [ValidateSet('Config', 'Vulnerabilities', 'EnabledPlugins', 'FamilySelection', 'ReportInfo', 'PluginPreferences')] 
+        $InfoType = 'Vulnerabilities'
     )
 
     Begin
@@ -1372,7 +1372,7 @@ function Import-NessusV2Report
     }
     Process
     {
-        if ($InfoType -eq "Vulnerabilities")
+        if ($InfoType -eq 'Vulnerabilities')
         {
             # How many servers
             $record_count = $nessus.NessusClientData_v2.Report.ReportHost.Length
@@ -1390,7 +1390,7 @@ function Import-NessusV2Report
                 # Gathering properties for each host
                 foreach($hostproperty in $reporthost.HostProperties.tag) 
                 {
-                    $hproperties += @{($hostproperty.name -replace "-","_") = $hostproperty."#text"}
+                    $hproperties += @{($hostproperty.name -replace '-','_') = $hostproperty.'#text'}
                 }
     
                 # Set the Host and Host Properties object properties
@@ -1398,7 +1398,7 @@ function Import-NessusV2Report
                 $host_properties += @{Host_Properties = [pscustomobject]$hproperties}
 
                 # Collect vulnerable information for each host
-                foreach ($reportitem in ($reporthost.ReportItem | where {$_.pluginID -ne "0"})) {
+                foreach ($reportitem in ($reporthost.ReportItem | where {$_.pluginID -ne '0'})) {
                     
                     $vuln_properties = @{
                     Host                 = $hostip.Trim()
@@ -1446,26 +1446,26 @@ function Import-NessusV2Report
                 if ($record_count -gt 1)
                 {
                     $record_progress = [int][Math]::Ceiling((($i / $record_count) * 100))
-                    Write-Progress -Activity "Processing Vulnerability Report" -PercentComplete $record_progress -Status "Processing records - $record_progress%" -Id 1;
+                    Write-Progress -Activity 'Processing Vulnerability Report' -PercentComplete $record_progress -Status "Processing records - $record_progress%" -Id 1;
                     $i++
                 }
             }
             $reported_hosts
         }
-        elseif ($InfoType -eq "Config")
+        elseif ($InfoType -eq 'Config')
         {
             $prefs = @()
             $ips_plugins =@()
             # Get Server Settings
             $ServerSettings = @{}
-            Write-Verbose "Processing server settings."
+            Write-Verbose 'Processing server settings.'
             foreach ($serverpref in ($nessus.NessusClientData_v2.Policy.Preferences.ServerPreferences.preference))
             { 
                $ServerSettings.Add($serverpref.name,$serverpref.value) 
             }
             [pscustomobject]$ServerSettings
         }
-        elseif ($InfoType -eq "EnabledPlugins")
+        elseif ($InfoType -eq 'EnabledPlugins')
         {
             $plugins = $nessus.NessusClientData_v2.Policy.IndividualPluginSelection.PluginItem
             foreach($plugin in $plugins)
@@ -1477,7 +1477,7 @@ function Import-NessusV2Report
                 }   
             }
         }
-        elseif ($InfoType -eq "FamilySelection")
+        elseif ($InfoType -eq 'FamilySelection')
         {
             $families = $nessus.NessusClientData_v2.Policy.FamilySelection.FamilyItem
             foreach($family in $families)
@@ -1489,7 +1489,7 @@ function Import-NessusV2Report
             }
 
         }
-        elseif ($InfoType -eq "PluginPreferences")
+        elseif ($InfoType -eq 'PluginPreferences')
         {
             $pluginprefs = $nessus.NessusClientData_v2.Policy.Preferences.PluginsPreferences.ChildNodes
             foreach($pref in $pluginprefs)
@@ -1505,7 +1505,7 @@ function Import-NessusV2Report
                 }
             }
         }
-        elseif ($InfoType -eq "PolicyInfo")
+        elseif ($InfoType -eq 'PolicyInfo')
         {
             # Variables for collections
             $SelectedPlugins    = @()
@@ -1513,7 +1513,7 @@ function Import-NessusV2Report
             $PlugingPreferences = @()
 
             # Selected individual plugins
-            Write-Verbose "Parsing individual family selection"
+            Write-Verbose 'Parsing individual family selection'
             $plugins = $nessus.NessusClientData_v2.Policy.IndividualPluginSelection.PluginItem
             foreach($plugin in $plugins)
             {
@@ -1525,7 +1525,7 @@ function Import-NessusV2Report
             }
 
             # Familiy selection
-            Write-Verbose "Parsing plugin family selection"
+            Write-Verbose 'Parsing plugin family selection'
             $families = $nessus.NessusClientData_v2.Policy.FamilySelection.FamilyItem
             foreach($family in $families)
             {
@@ -1537,14 +1537,14 @@ function Import-NessusV2Report
 
             # Get Server Settings
             $ServerSettings = @{}
-            Write-Verbose "Parsing server settings."
+            Write-Verbose 'Parsing server settings.'
             foreach ($serverpref in ($nessus.NessusClientData_v2.Policy.Preferences.ServerPreferences.preference))
             { 
                $ServerSettings.Add($serverpref.name,$serverpref.value) 
             }
 
             # PluginPreferences
-            Write-Verbose "Parsing plugin preferences."
+            Write-Verbose 'Parsing plugin preferences.'
             $pluginprefs = $nessus.NessusClientData_v2.Policy.Preferences.PluginsPreferences.ChildNodes
             foreach($pref in $pluginprefs)
             {
@@ -1600,24 +1600,24 @@ function Get-NessusReportHostKB
     (
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Index")]
+        ParameterSetName = 'Index')]
         [int32[]]$Index,
 
         [Parameter(Mandatory=$true,
         Position=0,
-        ParameterSetName = "Session",
+        ParameterSetName = 'Session',
         ValueFromPipeline=$True)]
         [Nessus.Server.Session]$Session,
 
         [Parameter(Mandatory=$true,
         Position=1,
-        ParameterSetName = "Session")]
-        [Parameter(ParameterSetName = "Index")]
+        ParameterSetName = 'Session')]
+        [Parameter(ParameterSetName = 'Index')]
         $ReportID,
 
         [Parameter(Mandatory=$false,
-        ParameterSetName = "Session")]
-        [Parameter(ParameterSetName = "Index")]
+        ParameterSetName = 'Session')]
+        [Parameter(ParameterSetName = 'Index')]
         [string]$ReportHost
 
         )
@@ -1648,26 +1648,26 @@ function Get-NessusReportHostKB
             $request_reply = $NSession.SessionManager.ReportHasKB($ReportID)
         }
         Catch [Net.WebException] {
-           if ($_.exception -match ".*403.*") {
-                write-verbose "The session has expired, Re-authenticating"
+           if ($_.exception -match '.*403.*') {
+                write-verbose 'The session has expired, Re-authenticating'
                 $reauth = $ns.SessionManager.Login(
                     $ns.SessionState.Username, 
                     $ns.SessionState.Password, 
                     [ref]$true)
-                if ($reauth.reply.status -eq "OK"){
+                if ($reauth.reply.status -eq 'OK'){
                     $request_reply = $NSession.SessionManager.ReportHasKB($ReportID)
                 }
                 else{
-                    throw "Session expired could not Re-Authenticate"
+                    throw 'Session expired could not Re-Authenticate'
                 }
             }
-            elseif ($_.exception -match ".*404.*") {
-                throw "A report with that ID was not found on Nessus Server"
+            elseif ($_.exception -match '.*404.*') {
+                throw 'A report with that ID was not found on Nessus Server'
             } 
         }
 
         # Lets make sure that the report has KB
-        if ($request_reply.reply.contents.hasKB -eq "TRUE")
+        if ($request_reply.reply.contents.hasKB -eq 'TRUE')
         {
             # Disable SSL Checking for the PowerShell Session
             [Net.ServicePointManager]::ServerCertificateValidationCallback = {$true} 
@@ -1713,32 +1713,32 @@ function Import-NessusKB
         [Parameter(Mandatory=$true,
                    ValueFromPipelineByPropertyName=$true,
                    Position=0,
-                   ParameterSetName = "File")]
-        [Parameter(ParameterSetName = "Filter")]
+                   ParameterSetName = 'File')]
+        [Parameter(ParameterSetName = 'Filter')]
         [ValidateScript({Test-Path $_})] 
         $KBFile,
 
         [Parameter(Mandatory=$true,
                    ValueFromPipelineByPropertyName=$true,
                    Position=0,
-                   ParameterSetName = "StringDoc")]
-        [Parameter(ParameterSetName = "Filter")]
+                   ParameterSetName = 'StringDoc')]
+        [Parameter(ParameterSetName = 'Filter')]
         [string]$InputObject,
 
         # Type of Information to return
         [Parameter(Mandatory=$false,
                    ValueFromPipelineByPropertyName=$true,
                    Position=1)]
-        [Parameter(ParameterSetName = "StringDoc")]
-        [Parameter(ParameterSetName = "File")]
-        [ValidateSet("All", "Triggered", "Passed", "Info")] 
-        $InfoType = "Plugins",
+        [Parameter(ParameterSetName = 'StringDoc')]
+        [Parameter(ParameterSetName = 'File')]
+        [ValidateSet('All', 'Triggered', 'Passed', 'Info')] 
+        $InfoType = 'Plugins',
 
 
         [Parameter(Mandatory=$false,
                    ValueFromPipelineByPropertyName=$true,
                    Position=0,
-                   ParameterSetName = "Filter")]
+                   ParameterSetName = 'Filter')]
         [int[]]$PluginID
     ) 
 
@@ -1765,13 +1765,13 @@ function Import-NessusKB
         # Populate variables
         foreach ($KBEntry in $KBData) 
         { 
-            if ($KBEntry -like "*Launched/*")
+            if ($KBEntry -like '*Launched/*')
             {
-                $launched += $KBEntry.Split(" ")[2].Split("/")[1].Split("=")[0]
+                $launched += $KBEntry.Split(' ')[2].Split('/')[1].Split('=')[0]
             }
-            elseif ($KBEntry -like "*Success/*")
+            elseif ($KBEntry -like '*Success/*')
             {
-                $successfull += $KBEntry.Split(" ")[2].Split("/")[1].Split("=")[0]
+                $successfull += $KBEntry.Split(' ')[2].Split('/')[1].Split('=')[0]
             }
             else
             {
@@ -1783,43 +1783,43 @@ function Import-NessusKB
         {
             switch ($InfoType)
             {
-                "All"
+                'All'
                 {
                     foreach ($plugin in $launched)
                     {
-                        $status = "Passed"
+                        $status = 'Passed'
                         if ($plugin -in $successfull)
                         {
-                            $status = "Triggered"
+                            $status = 'Triggered'
                         }
                         [pscustomobject][ordered]@{PluginID = $plugin; Status = $status}
                     }
                 }
 
-                "Triggered"
+                'Triggered'
                 {
                     foreach ($plugin in $launched)
                     {
                         if ($plugin -in $successfull)
                         {
-                            [pscustomobject][ordered]@{PluginID = $plugin; Status = "Triggered"}
+                            [pscustomobject][ordered]@{PluginID = $plugin; Status = 'Triggered'}
                         }
                     }
                 }
 
-                "Passed"
+                'Passed'
                 {
                     foreach ($plugin in $launched)
                     {
                         if ($plugin -notin $successfull)
                         {
-                            [pscustomobject][ordered]@{PluginID = $plugin; Status = "Passed"}
+                            [pscustomobject][ordered]@{PluginID = $plugin; Status = 'Passed'}
                         }
                     }
                 
                 }
 
-                "Info" 
+                'Info' 
                 {
                     $info
                 }
@@ -1833,20 +1833,20 @@ function Import-NessusKB
             {
                 if ($plugin_id -in $launched)
                 {
-                    $status = "Passed"
+                    $status = 'Passed'
                     if ($plugin_id -in $successfull)
                     {
-                        [pscustomobject][ordered]@{PluginID = $plugin_id; Status = "Triggered"}
+                        [pscustomobject][ordered]@{PluginID = $plugin_id; Status = 'Triggered'}
                     }
                     else
                     {
-                        [pscustomobject][ordered]@{PluginID = $plugin_id; Status = "Passed"}
+                        [pscustomobject][ordered]@{PluginID = $plugin_id; Status = 'Passed'}
                     }
                     
                 }
                 else
                 {
-                    [pscustomobject][ordered]@{PluginID = $plugin_id; Status = "Not Executed"}
+                    [pscustomobject][ordered]@{PluginID = $plugin_id; Status = 'Not Executed'}
                 }
             }
          }

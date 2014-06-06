@@ -987,7 +987,7 @@ function New-NessusPolicy
         Try {
             #add token to options
             $ops.Add('token',$NSession.token)
-            $request_reply = $NSession.SessionState.ExecuteCommand('/policy/update', $ops)
+            $request_reply = $NSession.SessionState.ExecuteCommand2('/policy/update', $ops)
         }
         Catch [Net.WebException] {
            
@@ -998,7 +998,7 @@ function New-NessusPolicy
                 [ref]$true)
             if ($reauth.reply.status -eq 'OK')
             {
-                $request_reply = $NSession.SessionState.ExecuteCommand('/policy/update', $ops)
+                $request_reply = $NSession.SessionState.ExecuteCommand2('/policy/update', $ops)
             }
             else{
                 throw 'Session expired could not Re-Authenticate'
@@ -1006,7 +1006,7 @@ function New-NessusPolicy
             
         }
             
-        $policy = $request_reply.reply.contents.metadata
+        $policy = (ConvertFrom-Json -InputObject $request_reply).reply.contents.metadata
             
         $policy_proprties = [ordered]@{
             Name = $policy.name
